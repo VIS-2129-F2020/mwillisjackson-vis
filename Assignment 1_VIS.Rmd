@@ -5,26 +5,197 @@ date: "9/10/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r load libraries, message=FALSE, results='hide'}
+library(tidycensus)
+library(tidyverse)
+library(ggplot2)
 ```
 
-## R Markdown
+```{r examine area variables}
+area_vars_2018 <- load_variables(2018,"acs1")
+```
+## Variables to be Derived for Each Tract:
+1. Majority Non-White (categorical)
+2. Median income (continuous)
+3. Median age (continuous)
+4. Majority country of ancestry (categorical)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r get variables, message=FALSE, results='hide'}
+#select all variables to be used in an area-
+#level analysis
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+race_vars<- c(race_total = "B02001_001",
+              white = "B02001_002")
 
-```{r cars}
-summary(cars)
+ancestry_vars<- c(Afghan = "B04006_002",
+                   Albanian = "B04006_003",
+                   Alsatian = "B04006_004",
+                   American = "B04006_005",
+                   Arab = "B04006_006",
+                   ArabEgyptian = "B04006_007",
+                   ArabIraqi = "B04006_008",
+                   ArabJordanian = "B04006_009",
+                   ArabLebanese = "B04006_010",
+                   ArabMoroccan = "B04006_011",
+                   ArabPalestinian = "B04006_012",
+                   ArabSyrian = "B04006_013",
+                   ArabArab = "B04006_014",
+                   ArabOtherArab = "B04006_015",
+                   Armenian = "B04006_016",
+                   AssyrianChaldeanSyriac = "B04006_017",
+                   Australian = "B04006_018",
+                   Austrian = "B04006_019",
+                   Basque = "B04006_020",
+                   Belgian = "B04006_021",
+                   Brazilian = "B04006_022",
+                   British = "B04006_023",
+                   Bulgarian = "B04006_024",
+                   Cajun = "B04006_025",
+                   Canadian = "B04006_026",
+                   CarpathoRusyn = "B04006_027",
+                   Celtic = "B04006_028",
+                   Croatian = "B04006_029",
+                   Cypriot = "B04006_030",
+                   Czech = "B04006_031",
+                   Czechoslovakian = "B04006_032",
+                   Danish = "B04006_033",
+                   Dutch = "B04006_034",
+                   EasternEuropean = "B04006_035",
+                   English = "B04006_036",
+                   Estonian = "B04006_037",
+                   European = "B04006_038",
+                   Finnish = "B04006_039",
+                   FrenchexceptBasque = "B04006_040",
+                   FrenchCanadian = "B04006_041",
+                   German = "B04006_042",
+                   GermanRussian = "B04006_043",
+                   Greek = "B04006_044",
+                   Guyanese = "B04006_045",
+                   Hungarian = "B04006_046",
+                   Icelander = "B04006_047",
+                   Iranian = "B04006_048",
+                   Irish = "B04006_049",
+                   Israeli = "B04006_050",
+                   Italian = "B04006_051",
+                   Latvian = "B04006_052",
+                   Lithuanian = "B04006_053",
+                   Luxembourger = "B04006_054",
+                   Macedonian = "B04006_055",
+                   Maltese = "B04006_056",
+                   NewZealander = "B04006_057",
+                   NorthernEuropean = "B04006_058",
+                   Norwegian = "B04006_059",
+                   PennsylvaniaGerman = "B04006_060",
+                   Polish = "B04006_061",
+                   Portuguese = "B04006_062",
+                   Romanian = "B04006_063",
+                   Russian = "B04006_064",
+                   Scandinavian = "B04006_065",
+                   Scotch_Irish = "B04006_066",
+                   Scottish = "B04006_067",
+                   Serbian = "B04006_068",
+                   Slavic = "B04006_069",
+                   Slovak = "B04006_070",
+                   Slovene = "B04006_071",
+                   SovietUnion = "B04006_072",
+                   SubsaharanAfrican = "B04006_073",
+                   SubsaharanAfricanCapeVerdean = "B04006_074",
+                   SubsaharanAfricanEthiopian = "B04006_075",
+                   SubsaharanAfricanGhanaian = "B04006_076",
+                   SubsaharanAfricanKenyan = "B04006_077",
+                   SubsaharanAfricanLiberian = "B04006_078",
+                   SubsaharanAfricanNigerian = "B04006_079",
+                   SubsaharanAfricanSenegalese = "B04006_080",
+                   SubsaharanAfricanSierraLeonean = "B04006_081",
+                   SubsaharanAfricanSomali = "B04006_082",
+                   SubsaharanAfricanSouthAfrican = "B04006_083",
+                   SubsaharanAfricanSudanese = "B04006_084",
+                   SubsaharanAfricanUgandan = "B04006_085",
+                   SubsaharanAfricanZimbabwean = "B04006_086",
+                   SubsaharanAfricanAfrican = "B04006_087",
+                   SubsaharanAfricanOtherSubsaharanAfrican = "B04006_088",
+                   Swedish = "B04006_089",
+                   Swiss = "B04006_090",
+                   Turkish = "B04006_091",
+                   Ukrainian = "B04006_092",
+                   Welsh = "B04006_093",
+                   WestIndianexceptHispanicgroups = "B04006_094",
+                   WestIndianexceptHispanicgroupsBahamian = "B04006_095",
+                   WestIndianexceptHispanicgroupsBarbadian = "B04006_096",
+                   WestIndianexceptHispanicgroupsBelizean = "B04006_097",
+                   WestIndianexceptHispanicgroupsBermudan = "B04006_098",
+                   WestIndianexceptHispanicgroupsBritishWestIndian = "B04006_099",
+                   WestIndianexceptHispanicgroupsDutchWestIndian = "B04006_100",
+                   WestIndianexceptHispanicgroupsHaitian = "B04006_101",
+                   WestIndianexceptHispanicgroupsJamaican = "B04006_102",
+                   WestIndianexceptHispanicgroupsTrinidadianandTobagonian = "B04006_103",
+                   WestIndianexceptHispanicgroupsU.S.VirginIslander = "B04006_104",
+                   WestIndianexceptHispanicgroupsWestIndian = "B04006_105",
+                   WestIndianexceptHispanicgroupsOtherWestIndian = "B04006_106",
+                   Yugoslavian = "B04006_107")
+                   #Othergroups = "B04006_108",
+                   #Unclassifiedornotreported = "B04006_109")
+
+income_var<- c(median_income = "B06011_001")
+
+age_var<- c(median_age = "B01002_001")
+
+
+income_data<- get_acs(geography = "tract",
+                   variables = income_var,
+                   output = "wide",
+                   state = "NY",
+                   county = "Kings",
+                   year = 2018)
+age_data<- get_acs(geography = "tract",
+                   variables = age_var,
+                   output = "wide",
+                   state = "NY",
+                   county = "Kings",
+                   year = 2018)
+race_data<- get_acs(geography = "tract", 
+                    variables = race_vars,
+                    output = "wide",
+                    state = "NY", 
+                    county = "Kings", 
+                    year = 2018)
+
+ancestry_type_data<- get_acs(geography = "tract",
+                             variables = ancestry_vars,
+                             state = "NY",
+                             county = "Kings",
+                             year = 2018)
+  
+#sort the ancestry country data first by tract (GEOID), then by the highest population reporting
+ancestry_type_data<- ancestry_type_data[order(ancestry_type_data[,1],-ancestry_type_data[,4]),]
+
+#select the highest reported ancestry country population for each tract
+maj_ancestry<-   ancestry_type_data %>%
+  group_by(GEOID) %>%
+  summarise(maj_anc_pop = max(estimate),maj_anc_type = first(variable)) %>%
+  select(GEOID, maj_anc_pop, maj_anc_type)
+
+#combine variables into one dataset
+kings_data<- inner_join(race_data, age_data, by = "GEOID") %>%
+  mutate(pct_not_white = (race_totalE - whiteE) / race_totalE,
+         majority_not_white = pct_not_white > .5) %>%
+  select(GEOID, pct_not_white, majority_not_white, median_ageE)
+
+kings_data<- inner_join(kings_data, income_data, by = "GEOID") %>%
+  select(GEOID, pct_not_white, majority_not_white, median_ageE, median_incomeE)
+
+kings_data<- inner_join(kings_data, maj_ancestry, by = "GEOID") %>%
+  select(GEOID, pct_not_white, majority_not_white, median_ageE, median_incomeE, maj_anc_type)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r write csv}
+write_csv(kings_data,"king_county.csv")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+
+
+
