@@ -13,6 +13,59 @@ library(ggplot2)
 
 ```{r examine area variables}
 area_vars_2018 <- load_variables(2018,"acs1")
+person_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "person", year == 2018, survey == "acs1")
+```
+
+```{r TEMP}
+temp_brooklyn<- get_pums(variables = c("ANC1P",
+                         "RAC1P",
+                         "PUMA"),
+                         state = "NY",
+                         year = 2018,
+                         survey = "acs1",
+                         recode = T) %>%
+  mutate(PUMA = as.numeric(PUMA)) %>%
+  select(ANC1P_label, RAC1P_label, PUMA)
+
+brooklyn_puma<- as.data.frame(cbind(as.numeric(c(04001, 
+04002, 
+04003, 
+04004, 
+04005, 
+04006, 
+04007, 
+04008, 
+04009, 
+04010, 
+04011, 
+04012, 
+04013, 
+04014, 
+04015, 
+04016, 
+04017, 
+04018
+)),1))
+
+colnames(brooklyn_puma)<- c("PUMA","county")
+
+brooklyn_puma_data<- inner_join(brooklyn_puma, temp_brooklyn, by = "PUMA") %>%
+  select(PUMA, county, ANC1P_label, RAC1P_label)
+
+brooklyn_black<- brooklyn_puma_data[(brooklyn_puma_data$RAC1P_label == "Black or African American alone"),]
+
+attach(brooklyn_black)
+ggplot(brooklyn_black,
+       aes(x = ANC1P_label,
+           color = ANC1P_label)) +
+  geom_bar() +
+    theme(legend.key.size = unit(0.1, "cm"),
+          legend.position = "bottom",
+        text = element_text(size = 8))
+
 ```
 ## Variables to be Derived for Each Tract:
 1. Majority Non-White (categorical)
@@ -25,7 +78,8 @@ area_vars_2018 <- load_variables(2018,"acs1")
 #level analysis
 
 race_vars<- c(race_total = "B02001_001",
-              white = "B02001_002")
+              white = "B02001_002",
+              black = "B02001_003")
 
 ancestry_vars<- c(Afghan = "B04006_002",
                    Albanian = "B04006_003",
@@ -177,22 +231,179 @@ maj_ancestry<-   ancestry_type_data %>%
 
 #combine variables into one dataset
 kings_data<- inner_join(race_data, age_data, by = "GEOID") %>%
-  mutate(pct_not_white = (race_totalE - whiteE) / race_totalE,
+  mutate(pct_white = whiteE / race_totalE,
+         pct_black = blackE / race_totalE,
+         pct_not_white = (race_totalE - whiteE) / race_totalE,
          majority_not_white = pct_not_white > .5) %>%
-  select(GEOID, pct_not_white, majority_not_white, median_ageE)
+  select(GEOID, pct_white, pct_black, pct_not_white, majority_not_white, median_ageE)
 
 kings_data<- inner_join(kings_data, income_data, by = "GEOID") %>%
-  select(GEOID, pct_not_white, majority_not_white, median_ageE, median_incomeE)
+  select(GEOID, pct_white, pct_black, pct_not_white, majority_not_white, median_ageE, median_incomeE)
 
 kings_data<- inner_join(kings_data, maj_ancestry, by = "GEOID") %>%
-  select(GEOID, pct_not_white, majority_not_white, median_ageE, median_incomeE, maj_anc_type)
+  #group ancestry types more generally
+  mutate(maj_anc_group = case_when(
+    maj_anc_type == "Russian" ~ "Europe",
+    maj_anc_type == "Polish" ~ "Europe",
+    maj_anc_type == "Hungarian" ~ "Europe",
+    maj_anc_type == "EasternEuropean" ~ "Europe",
+    maj_anc_type == "Ukrainian" ~ "Europe",
+    maj_anc_type == "Turkish" ~ "Europe",
+    maj_anc_type == "Serbian" ~ "Europe",
+    maj_anc_type == "European" ~ "Europe",
+    maj_anc_type == "Arab" ~ "Middle East",
+    maj_anc_type == "Afghan" ~ "Middle East",
+    maj_anc_type == "Norwegian" ~ "Europe",
+    maj_anc_type == "Guyanese" ~ "South America",
+    maj_anc_type == "Italian" ~ "Europe",
+    maj_anc_type == "Greek" ~ "Europe",
+    maj_anc_type == "SubsaharanAfrican" ~ "Sub-Saharan Africa",
+    maj_anc_type == "American" ~ "United States",
+    maj_anc_type == "WestIndianexceptHispanicgroups" ~ "West Indies",
+    maj_anc_type == "German" ~ "Europe",
+    maj_anc_type == "Irish" ~ "Europe",
+    maj_anc_type == "English" ~ "Europe",
+    maj_anc_type == "Belgian" ~ "Europe")) %>%
+  select(GEOID, pct_white, pct_black, pct_not_white, majority_not_white, median_ageE, median_incomeE, maj_anc_type, maj_anc_group)
+
+
 ```
 
 ```{r write csv}
 write_csv(kings_data,"king_county.csv")
 ```
 
+```{r data visualizations, message=FALSE}
+attach(kings_data)
 
+#ggplot(kings_data,
+ #      aes(x = median_incomeE, group_by(maj_anc_group)))+
+  #geom_bar()
+
+ggplot(kings_data,
+       aes(x = maj_anc_group,
+           y = pct_white)) +
+  geom_point()
+
+hist(pct_white[which(maj_anc_group == "United States")])
+
+hist(pct_black[which(maj_anc_group == "United States")])
+
+
+ggplot(kings_data,
+       aes(x = median_incomeE,
+           y = median_ageE,
+           size = pct_white,
+           shape = maj_anc_group,
+           color = maj_anc_type)
+       ) +
+  geom_point(na.rm = T) +
+  theme(legend.position = "right", text = element_text(size = 8)) +
+  scale_x_continuous(name = "Median Income by Tract") +
+  scale_y_continuous(name = "Median Age by Tract")+
+  scale_shape_discrete(name = "Major Ancestral Region of Tract")+
+  scale_color_discrete(name = "Major Ancestral Country of Tract")+
+  scale_size_continuous(name = "Percent of Tract Population that is White",
+                        breaks = c(0.0, .25, .5, .75, 1),
+                        labels = c("0%", "25%", "50%", "75%", "100%"))
+
+ggplot(kings_data,
+       aes(x = maj_anc_group,)) +
+  geom_bar(na.rm = T) +
+  scale_x_discrete(name = "Majority Ancestral Region of Tract") +
+  scale_y_continuous(name = "Count of Tracts")
+
+ggplot(kings_data,
+       aes(x = maj_anc_group, fill = maj_anc_type)) +
+  geom_bar(width = .75, na.rm = T) +
+  scale_x_discrete(name = "Majority Ancestral Region of Tract") +
+  scale_y_continuous(name = "Count of Tracts") +
+  theme(legend.position = "bottom") +
+  scale_fill_discrete(name = "Majority Ancestral Country of Tract")
+
+ggplot(kings_data, 
+       aes(x = pct_white,
+           y = median_incomeE,
+           color = maj_anc_type,
+           shape = maj_anc_group
+            )) + 
+  geom_point(na.rm = T) +
+  scale_x_continuous(name = "Percent of Tract Population that is White",
+                     breaks = c(0.0, .25, .5, .75, 1),
+                     labels = c("0%", "25%", "50%", "75%", "100%")) +
+  scale_y_continuous(name = "Median Income by Tract",
+                     breaks = c(25000,50000,75000,100000),
+                     labels = c("$25,000","$50,000","$75,000","$100,000")) +
+  scale_shape_discrete(name = "Major Ancestral Region of Tract") +
+  scale_color_discrete(name = "Major Ancestral Country of Tract") +
+  theme(legend.key.size = unit(0.1, "cm"), 
+        legend.position = "right",
+        text = element_text(size = 8))
+
+
+ggplot(kings_data, 
+       aes(x = pct_white,
+           y = median_incomeE,
+           color = maj_anc_group,
+            )) + 
+  geom_polygon(rule = "winding", na.rm = T) +
+  scale_x_continuous(name = "Percent of Tract Population that is White",
+                     breaks = c(0.0, .25, .5, .75, 1),
+                     labels = c("0%", "25%", "50%", "75%", "100%")) +
+  scale_y_continuous(name = "Median Income by Tract",
+                     breaks = c(25000,50000,75000,100000),
+                     labels = c("$25,000","$50,000","$75,000","$100,000")) +
+  scale_shape_discrete(name = "Major Ancestral Region of Tract") +
+  scale_color_discrete(name = "Major Ancestral Country of Tract") +
+  theme(legend.key.size = unit(0.5, "cm"),
+        line = element_line(size = 5),
+        legend.position = "right",
+        text = element_text(size = 10))
+
+
+ggplot(kings_data, 
+       aes(x = maj_anc_group,
+           y = median_incomeE,
+           color = maj_anc_type,
+            )) + 
+  geom_boxplot(na.rm = T) +
+  theme(legend.position = "bottom") +
+  scale_x_discrete(name = "Majority Ancestral Region of Tract") +
+  scale_y_continuous(name = "Median Income by Tract",
+                     breaks = c(25000,50000,75000,100000),
+                     labels = c("$25,000","$50,000","$75,000","$100,000")) +
+  scale_color_discrete(name = "Major Ancestral Country of Tract") +
+  theme(legend.key.size = unit(0.1, "cm"),
+        text = element_text(size = 8))
+
+hist(kings_data$median_incomeE)
+
+ggplot(kings_data,
+       aes(x = maj_anc_group, fill = maj_anc_group)) +
+  geom_bar(na.rm = T)
+
+ggplot(kings_data,
+       aes(x = maj_anc_type, fill = maj_anc_group)) +
+  geom_bar(width = 1.5)
+
+ggplot(kings_data,
+       aes(x = median_ageE,
+           y = median_incomeE,
+           color = pct_not_white)) +
+  geom_point(show.legend = T, na.rm = T) +
+  theme(legend.position = "bottom",
+        legend.key.size = unit(1,"cm"))+
+  scale_y_continuous(name = "Median Income by Tract",
+                     breaks = c(25000,50000,75000,100000),
+                     labels = c("$25,000","$50,000","$75,000","$100,000"))+
+  scale_x_continuous(name = "Median Age by Tract")+
+  scale_color_continuous(name = "Proportion of Tract Population that is Non-White")
+
+
+
+
+
+```
 
 
 
