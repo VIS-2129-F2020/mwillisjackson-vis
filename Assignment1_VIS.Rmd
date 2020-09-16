@@ -1,7 +1,7 @@
 ---
 title: "Assignment1-VIS"
 author: "Megan Willis-Jackson"
-date: "9/10/2020"
+date: "9/16/2020"
 output: html_document
 ---
 
@@ -24,7 +24,7 @@ person_vars_2018 <- pums_variables %>%
 ```
 
 I have decided that I will derive the below variables at the census tract level for
-Brooklyn, NY (Kings County). Some of them might seem repetetive, but I think they
+Brooklyn, NY (Kings County). Some of them might seem repetitive, but I think they
 will allow for some more interesting and varied comparisons later on.
 
 ## Variables to be Derived for Each Tract:
