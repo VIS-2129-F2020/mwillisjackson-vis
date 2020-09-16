@@ -5,12 +5,16 @@ date: "9/10/2020"
 output: html_document
 ---
 
+# Visualizing Relationships and Distributions
+
+First I will load the libraries necessary to run the code that follows.
 ```{r load libraries, message=FALSE, results='hide'}
 library(tidycensus)
 library(tidyverse)
 library(ggplot2)
 ```
 
+Next, I will examine area- and person-level census variables to select those I would like to include in my dataset.
 ```{r examine area variables}
 area_vars_2018 <- load_variables(2018,"acs1")
 person_vars_2018 <- pums_variables %>%
@@ -19,59 +23,18 @@ person_vars_2018 <- pums_variables %>%
   filter(level == "person", year == 2018, survey == "acs1")
 ```
 
-```{r TEMP}
-temp_brooklyn<- get_pums(variables = c("ANC1P",
-                         "RAC1P",
-                         "PUMA"),
-                         state = "NY",
-                         year = 2018,
-                         survey = "acs1",
-                         recode = T) %>%
-  mutate(PUMA = as.numeric(PUMA)) %>%
-  select(ANC1P_label, RAC1P_label, PUMA)
+I have decided that I will derive the below variables at the census tract level for
+Brooklyn, NY (Kings County). Some of them might seem repetetive, but I think they
+will allow for some more interesting and varied comparisons later on.
 
-brooklyn_puma<- as.data.frame(cbind(as.numeric(c(04001, 
-04002, 
-04003, 
-04004, 
-04005, 
-04006, 
-04007, 
-04008, 
-04009, 
-04010, 
-04011, 
-04012, 
-04013, 
-04014, 
-04015, 
-04016, 
-04017, 
-04018
-)),1))
-
-colnames(brooklyn_puma)<- c("PUMA","county")
-
-brooklyn_puma_data<- inner_join(brooklyn_puma, temp_brooklyn, by = "PUMA") %>%
-  select(PUMA, county, ANC1P_label, RAC1P_label)
-
-brooklyn_black<- brooklyn_puma_data[(brooklyn_puma_data$RAC1P_label == "Black or African American alone"),]
-
-attach(brooklyn_black)
-ggplot(brooklyn_black,
-       aes(x = ANC1P_label,
-           color = ANC1P_label)) +
-  geom_bar() +
-    theme(legend.key.size = unit(0.1, "cm"),
-          legend.position = "bottom",
-        text = element_text(size = 8))
-
-```
 ## Variables to be Derived for Each Tract:
-1. Majority Non-White (categorical)
+1. Percent white (continuous)
+2. Percent black (continuous)
+3. Percent non-white (continuous)
+4. Majority Non-White (categorical)
 2. Median income (continuous)
 3. Median age (continuous)
-4. Majority country of ancestry (categorical)
+4. Country of ancestry most common in the tract (categorical)
 
 ```{r get variables, message=FALSE, results='hide'}
 #select all variables to be used in an area-
@@ -189,7 +152,16 @@ ancestry_vars<- c(Afghan = "B04006_002",
                    Yugoslavian = "B04006_107")
                    #Othergroups = "B04006_108",
                    #Unclassifiedornotreported = "B04006_109")
+```
 
+I exclude "Other groups" and "Unclassified or not reported" responses from this
+analysis simply because I would like to have more specificity in the charts.
+Ideally, I would code the count of each individual ancestry country and present
+those distributions, but that is likely something more easily done at the county
+level instead of comparing across tracts, particularly with the scope of this
+assignment.
+
+```{r get variables, cont., message=F, results='hide'}
 income_var<- c(median_income = "B06011_001")
 
 age_var<- c(median_age = "B01002_001")
@@ -269,27 +241,60 @@ kings_data<- inner_join(kings_data, maj_ancestry, by = "GEOID") %>%
 
 ```
 
+
+#### Save File as CSV
 ```{r write csv}
 write_csv(kings_data,"king_county.csv")
 ```
 
+## Visualize the Data
+
+### Graph 1
+
+The colors here probably aren't very helpful, as it only really adds additional information for the Europe category, and even then it's hard to make out the fine details.
+
 ```{r data visualizations, message=FALSE}
 attach(kings_data)
 
-#ggplot(kings_data,
- #      aes(x = median_incomeE, group_by(maj_anc_group)))+
-  #geom_bar()
-
 ggplot(kings_data,
        aes(x = maj_anc_group,
-           y = pct_white)) +
-  geom_point()
+           y = pct_white,
+           color = maj_anc_type)) +
+  geom_point(na.rm = T) +
+  scale_x_discrete(name = "Major Ancestral Region of Tract") +
+  scale_y_continuous(name = "Percent of Tract that is White",
+                     breaks = seq(0,1, by = .25),
+                     labels = c("0%","25%","50%","75%","100%")) +
+  scale_color_discrete(name = "Major\n Ancestral\n Country of\n Tract", ) +
+  theme(legend.position = "bottom", legend.title.align = 1)
 
-hist(pct_white[which(maj_anc_group == "United States")])
+```
 
-hist(pct_black[which(maj_anc_group == "United States")])
+### Graph 2
+
+I try a pretty standard pie chart below.
+
+```{r, message=FALSE}
+ggplot(kings_data,
+       aes(x = 1, fill = maj_anc_group)) +
+  geom_bar(position = "fill") +
+  coord_polar(theta = "y") +
+  scale_y_continuous(name = "Number of tracts") +
+  scale_fill_discrete(name = "Majority Ancestral Region of Tract") +
+  theme_void() 
 
 
+```
+
+
+### Graph 3
+
+This is not a graph I would ever include in a report or any official communications.
+There are far too many variables for it to be useful or even particularly legible.
+However, I do think it's fun to play around with visualizations like this, so I'm
+going for it!
+
+```{r, message=FALSE}
 ggplot(kings_data,
        aes(x = median_incomeE,
            y = median_ageE,
@@ -299,28 +304,87 @@ ggplot(kings_data,
        ) +
   geom_point(na.rm = T) +
   theme(legend.position = "right", text = element_text(size = 8)) +
-  scale_x_continuous(name = "Median Income by Tract") +
+  scale_x_continuous(name = "Median Income by Tract",
+                     breaks = seq(0, 100000, by = 20000),
+                     labels = c("$0", "$20k", "$40k", "$60k", "$80k", "$100k")) +
   scale_y_continuous(name = "Median Age by Tract")+
   scale_shape_discrete(name = "Major Ancestral Region of Tract")+
   scale_color_discrete(name = "Major Ancestral Country of Tract")+
   scale_size_continuous(name = "Percent of Tract Population that is White",
                         breaks = c(0.0, .25, .5, .75, 1),
-                        labels = c("0%", "25%", "50%", "75%", "100%"))
+                        labels = c("0%", "25%", "50%", "75%", "100%")) +
+  theme(text = element_text(size = 8))
+
+```
+
+
+### Graph 4
+
+The following two graphs are very similar so I am counting them as the same. The only difference is inclusion of color, which I think adds clarity to it in some ways but detracts in others. For example, the color demonstrates which tracts with certain ancestral countries are the only ones to make higher than a certain median income. The one without color, however, better shows that the most variance is seen in tracts where the median age is between about 30 and 45 years.
+
+```{r, message=FALSE}
+ggplot(kings_data,
+       aes(x = median_ageE,
+           y = median_incomeE,
+           color = maj_anc_group)) +
+  geom_area(na.rm = T) +
+  scale_x_continuous(name = "Median Age of Tract") +
+  scale_y_continuous(name = "Median Income of Tract",
+                     breaks = seq(0, 1000000, by = 250000)) +
+  scale_color_discrete(name = "Major Ancestral Region of Tract") +
+  theme(legend.position = "bottom")
 
 ggplot(kings_data,
-       aes(x = maj_anc_group,)) +
-  geom_bar(na.rm = T) +
-  scale_x_discrete(name = "Majority Ancestral Region of Tract") +
-  scale_y_continuous(name = "Count of Tracts")
+       aes(x = median_ageE,
+           y = median_incomeE)) +
+  geom_area(na.rm = T) +
+  scale_x_continuous(name = "Median Age of Tract") +
+  scale_y_continuous(name = "Median Income of Tract",
+                     breaks = seq(0, 1000000, by = 250000))
+```
 
+### Graph 5
+
+The point graph below shows the relationship between the percentage of a tract in Kings County that is not white and that tract's median income.
+
+```{r, message=FALSE}
+
+ggplot(kings_data,
+       aes(x = pct_not_white,
+           y = median_incomeE)) +
+  geom_point(alpha = 1, size = 0.5) +
+  stat_smooth(color = "red", linetype = 4, size = 1) +
+  scale_x_continuous(name = "Percent of Tract that is Non-White",
+                     breaks = seq(0,1,.1),
+                     labels = c("0%","10%","20%","30%","40%","50%","60%","70%","80%","90%","100%")) +
+  scale_y_continuous(name = "Median Income",
+                     breaks = seq(0,100000,by = 20000),
+                     labels = c("$0","$20k","$40k","$60k","$80k","$100k")) +
+  theme(text = element_text(size = 12))
+
+
+
+```
+
+### Graph 6
+
+This is a stacked bar chart, grouping each of the Brooklyn tracts by majority ancestral region, and then within that, breaking out the specific ancestral country.
+
+```{r, message=FALSE}
 ggplot(kings_data,
        aes(x = maj_anc_group, fill = maj_anc_type)) +
   geom_bar(width = .75, na.rm = T) +
   scale_x_discrete(name = "Majority Ancestral Region of Tract") +
   scale_y_continuous(name = "Count of Tracts") +
-  theme(legend.position = "bottom") +
-  scale_fill_discrete(name = "Majority Ancestral Country of Tract")
+  theme(legend.position = "bottom", legend.title.align = 1) +
+  scale_fill_discrete(name = "Majority\n Ancestral\n Country\n of Tract")
+```
 
+### Graph 7
+
+This scatter plot also may have a bit too much on it to be truly helpful. A more useful graph would probably remove the shape distinctions and make the colors ancestral regions as opposed to ancestral countries so that the distinctions are easier to see. Here, though, the chart suggests that in Brooklyn, it is mostly tracts with residents that are largely of European descent (specifically Irish and Italian) that even have median incomes over about $60k.
+
+```{r, message=FALSE}
 ggplot(kings_data, 
        aes(x = pct_white,
            y = median_incomeE,
@@ -339,8 +403,13 @@ ggplot(kings_data,
   theme(legend.key.size = unit(0.1, "cm"), 
         legend.position = "right",
         text = element_text(size = 8))
+```
 
+### Graph 8
 
+I both like and dislike this graph. I would never use it in a report, but it's also a bit intriguing to look at. I think it also does a decent job at illustrating what Graph 7 suggests: census tracts with residents of West Indies descent tend to make less that those of European descent.
+
+```{r, message=FALSE}
 ggplot(kings_data, 
        aes(x = pct_white,
            y = median_incomeE,
@@ -359,8 +428,13 @@ ggplot(kings_data,
         line = element_line(size = 5),
         legend.position = "right",
         text = element_text(size = 10))
+```
 
+### Graph 9
 
+This is several boxplots. Because the European region is the only region included which has more than one country within it, that's the one that is broken into several mini boxplots. I like this one because it shows that tracts with residents largely of European descent really have a large range of median incomes compared to tracts with residents of other descent.
+
+```{r, message=FALSE}
 ggplot(kings_data, 
        aes(x = maj_anc_group,
            y = median_incomeE,
@@ -372,20 +446,18 @@ ggplot(kings_data,
   scale_y_continuous(name = "Median Income by Tract",
                      breaks = c(25000,50000,75000,100000),
                      labels = c("$25,000","$50,000","$75,000","$100,000")) +
-  scale_color_discrete(name = "Major Ancestral Country of Tract") +
+  scale_color_discrete(name = "Major\n Ancestral\n Country\n of Tract") +
   theme(legend.key.size = unit(0.1, "cm"),
-        text = element_text(size = 8))
+        text = element_text(size = 12),
+        axis.text.x = element_text(angle = -45, hjust = 0),
+        legend.title.align = 1)
+```
 
-hist(kings_data$median_incomeE)
+### Graph 10
 
-ggplot(kings_data,
-       aes(x = maj_anc_group, fill = maj_anc_group)) +
-  geom_bar(na.rm = T)
+I like the simplicity of this scatter plot. It's easy to interpret and doesn't have too much going on that will distract the reader. Oldie-but-goodie.
 
-ggplot(kings_data,
-       aes(x = maj_anc_type, fill = maj_anc_group)) +
-  geom_bar(width = 1.5)
-
+```{r, message=FALSE}
 ggplot(kings_data,
        aes(x = median_ageE,
            y = median_incomeE,
@@ -398,7 +470,7 @@ ggplot(kings_data,
                      labels = c("$25,000","$50,000","$75,000","$100,000"))+
   scale_x_continuous(name = "Median Age by Tract")+
   scale_color_continuous(name = "Proportion of Tract Population that is Non-White")
-
+```
 
 
 
