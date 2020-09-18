@@ -1,0 +1,164 @@
+---
+title: "Assignment2_VIS"
+author: "Megan Willis-Jackson"
+date: "9/18/2020"
+output: html_document
+---
+
+
+
+
+```{r load libraries}
+library(ggplot2)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rgeos)
+library(tidyverse)
+library(ggspatial)
+library(cartogram)
+library(ggthemes)
+
+```
+
+
+```{r}
+africa<- ne_countries(scale = 50, returnclass = "sf") %>% 
+  filter(continent == "Africa")
+
+africa_map<- ggplot(africa) +
+  geom_sf() +
+  theme_bw()
+
+africa_map
+
+```
+
+
+I try out a bunch of different projections below. I do not end up using all of them in the subsequent visualizations, but I am leaving them in here to be able to quickly switch it up if I want to in the future.
+
+```{r change projections}
+africa_map +
+  annotation_scale(bar_cols = "grey")
+
+africa_sinusoidal<- "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+africa_lambert<- "+proj=lcc +lat_1=20 +lat_2=-23 +lat_0=0 +lon_0=25 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+africa_equidistant<- "+proj=eqdc +lat_0=0 +lon_0=0 +lat_1=20 +lat_2=-23 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+africa_albers<- "+proj=aea +lat_1=36.5 +lat_2=29.071428571429 +lat_0=32.7857142857145 +lon_0=-14.111111111111 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+africa_abc<- "+proj=aea +lat_1=-18 +lat_2=-32 +lat_0=0 +lon_0=24 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+africa_wafrica<- "+proj=tmerc +lat_0=0 +lon_0=7.3 +k=0.999 +x_0=1000000 +y_0=1000000 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+africa_brads<- "+proj=tmerc +lat_0=0 +lon_0=31 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"
+
+africa_laea<- "+proj=laea +lat_0=-10 +lon_0=35 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"
+
+
+```
+
+```{r map new projections}
+africa_map +
+  geom_sf() +
+  coord_sf(crs = africa_wafrica) +
+  annotation_scale() +
+  theme_economist()
+
+africa_map +
+  geom_sf() +
+  coord_sf(crs = africa_brads) +
+  annotation_scale() +
+  theme_economist()
+
+africa_map +
+  geom_sf() +
+  coord_sf(crs = africa_laea) +
+  annotation_scale() +
+  theme_economist()
+
+```
+
+
+```{r map transformed}
+africa_transformed_wafrica<- africa %>%
+  st_transform(crs = africa_wafrica)
+
+africa_transformed_brads<- africa %>%
+  st_transform(crs = africa_brads)
+
+africa_transformed_laea<- africa %>%
+  st_transform(crs = africa_laea)
+
+ggplot(africa_transformed_wafrica) +
+  geom_sf() +
+  theme_fivethirtyeight() +
+  annotation_scale()
+
+ggplot(africa_transformed_brads) +
+  geom_sf() +
+  annotation_scale() +
+  theme_economist()
+
+ggplot(africa_transformed_laea) +
+  geom_sf() +
+  annotation_scale() +
+  theme_economist()
+
+```
+
+## Chloropleth Map
+
+```{r plot data}
+ggplot(africa,
+       aes(fill = gdp_md_est)) +
+  geom_sf(color = "white") +
+  scale_fill_viridis_c(
+    name = "GDP (USD)",
+    breaks = seq(0,500000, by = 100000),
+    labels = c("$0","$100M","$200M","$300M","$400M","$500M"))
+
+ggplot(africa,
+       aes(fill = income_grp)) +
+  geom_sf() +
+  scale_fill_economist()
+
+```
+
+## Continuous Cartogram
+
+```{r cartogram, message=F}
+gdp_cart_cont<- africa_transformed_laea %>%
+  cartogram_cont("pop_est")
+
+ggplot(gdp_cart_cont,
+       aes(fill = gdp_md_est)) +
+  geom_sf() +
+  scale_fill_continuous(
+    name = "GDP (USD)",
+    breaks = seq(0,500000, by = 100000),
+    labels = c("$0","$100M","$200M","$300M","$400M","$500M"))
+
+
+```
+
+## Non-Continuous Cartogram
+
+```{r ncont, message=F}
+gdp_cart_ncont<- africa_transformed_laea %>%
+  cartogram_ncont("pop_est")
+
+ggplot(gdp_cart_ncont,
+       aes(fill = gdp_md_est)) +
+  geom_sf() +
+  scale_fill_continuous(
+    name = "GDP (USD)",
+    breaks = seq(0,500000, by = 100000),
+    labels = c("$0","$100M","$200M","$300M","$400M","$500M")) +
+  theme_bw()
+
+
+
+```
