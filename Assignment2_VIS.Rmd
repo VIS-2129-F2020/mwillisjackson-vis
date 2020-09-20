@@ -2,13 +2,15 @@
 title: "Assignment2_VIS"
 author: "Megan Willis-Jackson"
 date: "9/18/2020"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
 ---
 
 
+# Load Libraries
 
-
-```{r load libraries}
+```{r load libraries, message=F, results='hide'}
 library(ggplot2)
 library(sf)
 library(rnaturalearth)
@@ -18,29 +20,38 @@ library(tidyverse)
 library(ggspatial)
 library(cartogram)
 library(ggthemes)
+library(rnaturalearthhires)
+library(ggrepel)
 
 ```
 
+# Select Area
 
 ```{r}
 africa<- ne_countries(scale = 50, returnclass = "sf") %>% 
   filter(continent == "Africa")
 
+africa[38,35]<- 652271
+
+#the following two lines of code ensure that the dorling cartograph will work; an error pops up otherwise.
+africa$area<- NA
+africa$area<- africa$geometry
+
 africa_map<- ggplot(africa) +
   geom_sf() +
   theme_bw()
 
-africa_map
+africa_map +
+  annotation_scale(bar_cols = "grey")
+
 
 ```
 
+# Different Coordinate Projections
 
 I try out a bunch of different projections below. I do not end up using all of them in the subsequent visualizations, but I am leaving them in here to be able to quickly switch it up if I want to in the future.
 
 ```{r change projections}
-africa_map +
-  annotation_scale(bar_cols = "grey")
-
 africa_sinusoidal<- "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
 africa_lambert<- "+proj=lcc +lat_1=20 +lat_2=-23 +lat_0=0 +lon_0=25 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
@@ -60,12 +71,24 @@ africa_laea<- "+proj=laea +lat_0=-10 +lon_0=35 +x_0=0 +y_0=0 +ellps=WGS84 +units
 
 ```
 
+
+## Projection 1: Lambert Conformal Conic Projection
+This projection may make countries in northern Africa and southern Africa appear slightly larger when compared to those closer to the equator.
+
 ```{r map new projections}
+
 africa_map +
   geom_sf() +
-  coord_sf(crs = africa_wafrica) +
+  coord_sf(crs = africa_lambert) +
   annotation_scale() +
   theme_economist()
+
+```
+
+## Projection 2: Transverse Mercator Projection
+This projection looks to be more spatially accurate for east/central Africa. West Africa bends upwards in this projection in a way not seen on most maps.
+
+```{r}
 
 africa_map +
   geom_sf() +
@@ -73,91 +96,110 @@ africa_map +
   annotation_scale() +
   theme_economist()
 
+```
+
+## Projection 3: Albers Equal Area Conic
+This projection seems appropriate to spatially display southern Africa. The large northern section of the continent is very stretched out.
+
+```{r}
 africa_map +
   geom_sf() +
-  coord_sf(crs = africa_laea) +
+  coord_sf(crs = africa_abc) +
   annotation_scale() +
   theme_economist()
 
 ```
 
+# Transform the Coordinate System
 
 ```{r map transformed}
-africa_transformed_wafrica<- africa %>%
-  st_transform(crs = africa_wafrica)
+africa_transformed_lambert<- africa %>%
+  st_transform(crs = africa_lambert)
 
 africa_transformed_brads<- africa %>%
   st_transform(crs = africa_brads)
 
-africa_transformed_laea<- africa %>%
-  st_transform(crs = africa_laea)
+africa_transformed_abc<- africa %>%
+  st_transform(crs = africa_abc)
 
-ggplot(africa_transformed_wafrica) +
-  geom_sf() +
-  theme_fivethirtyeight() +
-  annotation_scale()
-
-ggplot(africa_transformed_brads) +
-  geom_sf() +
-  annotation_scale() +
-  theme_economist()
-
-ggplot(africa_transformed_laea) +
-  geom_sf() +
-  annotation_scale() +
-  theme_economist()
 
 ```
 
+# Visualizations of GDP
 ## Chloropleth Map
 
 ```{r plot data}
-ggplot(africa,
-       aes(fill = gdp_md_est)) +
-  geom_sf(color = "white") +
+ggplot(africa_transformed_brads,
+       aes(fill = gdp_md_est), ) +
+  geom_sf(color = "black", size = .01) +
+  annotation_scale() +
   scale_fill_viridis_c(
     name = "GDP (USD)",
     breaks = seq(0,500000, by = 100000),
-    labels = c("$0","$100M","$200M","$300M","$400M","$500M"))
-
-ggplot(africa,
-       aes(fill = income_grp)) +
-  geom_sf() +
-  scale_fill_economist()
+    labels = c("$0","$100M","$200M","$300M","$400M","$500M")) +
+    geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "white", fill = NA, label.size = NA, fontface = "bold", ) +
+  theme(panel.background = element_rect(fill = "light blue"), axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0)) +
+  labs(title = "GDP by Country")
 
 ```
 
 ## Continuous Cartogram
 
 ```{r cartogram, message=F}
-gdp_cart_cont<- africa_transformed_laea %>%
+gdp_cart_cont<- africa_transformed_brads %>%
   cartogram_cont("pop_est")
 
 ggplot(gdp_cart_cont,
        aes(fill = gdp_md_est)) +
-  geom_sf() +
-  scale_fill_continuous(
+  geom_sf(color = "black", size = .01) +
+  scale_fill_gradient2_tableau(
     name = "GDP (USD)",
     breaks = seq(0,500000, by = 100000),
-    labels = c("$0","$100M","$200M","$300M","$400M","$500M"))
+    labels = c("$0","$100M","$200M","$300M","$400M","$500M")) +
+  geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "white", fill = NA, label.size = NA, fontface = "bold") +
+  theme(panel.background = element_rect(fill = "black"), axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0)) +
+  labs(title = "GDP by Country, Showing Population \n(Continuous Cartogram)")
 
+
+
+```
+
+## Dorling Cartogram
+
+```{r dorling, message=F}
+gdp_cart_dorling<- africa_transformed_brads %>%
+  cartogram_dorling("pop_est")
+
+gdp_cart_dorling %>%
+ggplot(aes(fill = gdp_md_est)) +
+  geom_sf(color = NA) +
+  scale_fill_gradient2_tableau(
+    name = "GDP (USD)",
+    breaks = seq(0,500000, by = 100000),
+    labels = c("$0","$100M","$200M","$300M","$400M","$500M"))  +
+  geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "white", fill = NA, label.size = NA, fontface = "bold") +
+  theme(panel.background = element_rect(fill = "black"), axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0)) +
+  labs(title = "GDP by Country, Showing Population \n(Dorling Cartogram)")
 
 ```
 
 ## Non-Continuous Cartogram
 
 ```{r ncont, message=F}
-gdp_cart_ncont<- africa_transformed_laea %>%
+gdp_cart_ncont<- africa_transformed_brads %>%
   cartogram_ncont("pop_est")
 
 ggplot(gdp_cart_ncont,
        aes(fill = gdp_md_est)) +
-  geom_sf() +
-  scale_fill_continuous(
+  geom_sf(color = NA) +
+  scale_fill_gradient2(
     name = "GDP (USD)",
     breaks = seq(0,500000, by = 100000),
     labels = c("$0","$100M","$200M","$300M","$400M","$500M")) +
-  theme_bw()
+  geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "black", fill = NA, label.size = NA, fontface = "bold") +
+  labs(title = "GDP by Country, Showing Population \n(Non-Continuous Cartogram)") +
+  theme(axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0))
+
 
 
 
