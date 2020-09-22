@@ -90,7 +90,7 @@ africa_map +
 ```
 
 ## Projection 2: Transverse Mercator Projection
-This projection looks to be more spatially accurate for east/central Africa. West Africa bends upwards in this projection in a way not seen on most maps.
+This projection looks to be more spatially accurate for east/central Africa. West Africa bends upwards in this projection in a way not seen on most maps. This projection also does not give me a warning about the scale being inaccurate, so I will use this one for my subsequent analytical maps.
 
 ```{r}
 
