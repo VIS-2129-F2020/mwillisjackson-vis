@@ -1,0 +1,224 @@
+---
+title: "Assignment3_VIS"
+author: "Megan Willis-Jackson"
+date: "9/25/2020"
+output: html_document
+---
+
+```{r, message=F}
+library(sf)
+library(tidyverse)
+library(ggthemes)
+library(CycleInfraLnd)
+library(gridExtra)
+library(ggspatial)
+library(units)
+library(nngeo)
+library(grid)
+library(ggimage)
+
+```
+
+
+```{r, download geo data}
+london_camden<- st_read("https://opendata.camden.gov.uk/api/geospatial/peea-jaju?method=export&format=KML", quiet = T)
+
+london<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/London-wards-2018/London-wards-2018_ESRI", quiet = T)
+
+priv_pub1<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/GiGL_POPS_Shp/GiGL_POPS_font_point.shp", quiet = T)
+
+priv_pub2<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/GiGL_POPS_Shp/GiGL_POPS_region.shp", quiet = T)
+
+priv_pub<- rbind(priv_pub2, priv_pub1)
+
+openspace<- st_read("https://data.london.gov.uk/download/designated_open_space/03cb12ea-d6ef-46f2-9d8e-b95380af1a24/Designated_Open_Space.gpkg", quiet = T)
+
+housingzones<- st_read("https://data.london.gov.uk/download/housing_zones/3239c52f-0c34-41a3-bf18-1408ee53010f/Housing_Zones.gpkg", quiet = T)
+
+bus_lowems<- st_read("https://data.london.gov.uk/download/low_emission_bus_zones/9eacb8ee-345b-49e6-97d9-b3677c62652c/Low_Emission_Bus_Zones_line.gpkg", quiet = T)
+
+osm<- st_read("http://download.geofabrik.de/europe/great-britain/england/greater-london-latest.osm.pbf", quiet = T)
+
+pop<- read.csv("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/population-estimates-single-year-age.csv")
+
+london<- merge(london, pop, by.x = "LAGSSCODE", by.y = "Code")
+london<- london[,1:8]
+london_bor<- unique(london$DISTRICT)
+london_bor
+
+postbox<- osm[which(grepl("post_box",osm$other_tags) == T),]
+
+pub<- osm[which(grepl("public_transport", osm$other_tags) == F),]
+pub<- pub[which(grepl("pub", pub$other_tags) == T),]
+
+banksy<- osm[which(grepl("Banksy", osm$other_tags) == T),]
+
+speedcam<- osm[which(osm$highway == "speed_camera"),]
+
+noise_night<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/Road_Lnight_London", quiet = T)
+
+bike<- get_cid_lines("cycle_lane_track")
+traf_calm<- get_cid_points("traffic_calming")
+
+```
+
+
+```{r transform to same projection}
+
+#transform bike and openspace to same projection
+uk_proj<- "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs"
+
+uk_proj2<- "+proj=longlat +ellps=airy +no_defs"
+
+london_transform<- london %>%
+  st_transform(crs = uk_proj)
+
+openspace_transform<- openspace %>%
+  st_transform(crs = uk_proj)
+
+bike_transform<- bike %>%
+  st_transform(crs = uk_proj)
+
+housing_transform<- housingzones %>%
+  st_transform(crs = uk_proj)
+
+noise_night_loud<- noise_night[which(noise_night$NoiseClass == ">=70.0"),] %>%
+  st_transform(crs = uk_proj)
+
+speedcam_transform<- speedcam %>%
+  st_transform(crs = uk_proj)
+
+pub_transform<- pub %>%
+  st_transform(crs = uk_proj)
+
+banksy_transform<- banksy %>%
+  st_transform(crs = uk_proj)
+
+```
+
+```{r additional changes, fig.height=15}
+banksy_transform$image <- c("https://uploads3.wikiart.org/images/banksy.jpg",
+                            "https://uploads3.wikiart.org/images/banksy.jpg",
+                            "https://i.pinimg.com/originals/53/3b/dd/533bddad83f1dcdd48d22b2109a8d16c.jpg",
+                            "https://static.dezeen.com/uploads/2012/05/Dezeen_Banksy-in-Hackney-4.jpg",
+                            "https://i.dailymail.co.uk/i/pix/2011/08/06/article-0-0D519F4100000578-426_634x478.jpg",
+                            "https://cdn.shopify.com/s/files/1/2105/3701/products/Banksy_If_Graffiti_Was_Illegal_Wall_Sticker_b_720x.jpg?v=1571713884", 
+                            "https://guyhepner.com/wp-content/uploads/2015/11/Screen-Shot-2015-11-25-at-1.29.07-PM-570x378.png",
+                            "https://upload.wikimedia.org/wikipedia/en/8/8d/Crazy_Beat_Blur.jpg",
+                            "https://www.thesun.co.uk/wp-content/uploads/2016/04/1683341.main_image.jpg?strip=all",
+                            "https://www.thesun.co.uk/wp-content/uploads/2016/04/1683339.main_image.jpg?strip=all",
+                            "https://www.thesun.co.uk/wp-content/uploads/2016/04/1683342.main_image.jpg?strip=all")
+
+banksy_transform$x <- substr(banksy_transform$geometry, 3, 18)
+banksy_transform$x <- gsub(",","",banksy_transform$x)
+banksy_transform$x <- as.numeric(banksy_transform$x)
+
+banksy_transform$y <- substr(banksy_transform$geometry, 20, 36)
+banksy_transform$y <- gsub(")","",banksy_transform$y)
+banksy_transform$y <- as.numeric(banksy_transform$y)
+
+ggplot(london_transform) +
+  geom_sf(aes(fill = DISTRICT, alpha = .3), color = NA) +
+    geom_sf(data = pub_transform) +
+geom_image(data = banksy_transform, aes(x = x, y = y, image=image), size = .05, angle = 45) +
+  theme(legend.position = "none")
+
+```
+
+```{r visualize projections, fig.height=15}
+
+ggplot(london_transform) +
+  geom_sf(aes(fill = DISTRICT, alpha = .5), color = NA) +
+  geom_sf(data = openspace_transform, color = NA, fill = "darkgreen", alpha = .8) +
+  geom_sf(data = pub_transform, color = "orange") +
+  theme(legend.position = "none") +
+  scale_fill_viridis_d(alpha = .5) +
+  annotation_scale()
+
+ggplot(london_transform) +
+  geom_sf() +
+  geom_sf(data = banksy_transform)
+
+loud_plot<- ggplot(noise_night_loud) 
+
+loud_plot +
+  geom_sf(data = openspace_transform, fill = "darkgreen", color = NA) +
+  geom_sf(aes(color = NoiseClass)) +
+  geom_sf(data = speedcam_transform, fill = "red", size = 10,
+          aes(color = NA))
+
+noise_plot<- ggplot(noise_night) +
+  geom_sf(data = openspace_transform, fill = "darkgreen", color = NA) +
+  geom_sf(aes(color = NoiseClass))
+
+grid.arrange(loud_plot, noise_plot, nrow = 1, ncol = 2)
+
+
+```
+
+```{r points near points}
+pub_buffer<- st_buffer(pub_transform, dist = 500) %>%
+  st_union()
+
+ggplot(pub_buffer) +
+  geom_sf() +
+  theme_map()
+
+pub_cams<- speedcam_transform[pub_buffer,]
+
+ggplot(pub_buffer) +
+  geom_sf() +
+  geom_sf(data = pub_cams) +
+  geom_sf(data = speedcam_transform) +
+  theme_map()
+
+speedcam2 <- speedcam_transform %>%
+  st_join(pub_cams) %>%
+  mutate(by_pub = !is.na(highway.y))
+
+
+n_pub_cams <- sum(speedcam2$by_pub)
+n_pub_cams
+
+n_cams<- length(speedcam2$by_pub)
+pct_pub_cams<- n_pub_cams / n_cams
+pct_pub_cams
+
+```
+
+```{r points in polygons, fig.height=15}
+london2<- london %>%
+  mutate(num_pubs = lengths(st_covers(london_transform, pub_transform)),
+         perhacre = num_pubs / HECTARES,
+         ALL.AGES = gsub(",","",ALL.AGES),
+         population = as.numeric(ALL.AGES))
+
+london_areapubs<- aggregate(cbind(num_pubs, HECTARES) ~ DISTRICT, data = london2, FUN = sum)
+
+colnames(london_areapubs)<- c("DISTRICT","num_pubs_borough","hectares_borough")
+
+london2<- merge(london2, london_areapubs) %>%
+  mutate(perhacre_borough = num_pubs_borough / hectares_borough,
+         percapita_borough = num_pubs_borough / population)
+
+pub_hectare<- ggplot(london2) +
+  geom_sf(aes(fill = ALL.AGES)) +
+  scale_fill_viridis_d()
+
+pub_percap<- ggplot(london2) +
+  geom_sf(aes(fill = percapita_borough), color = NA) +
+  scale_fill_viridis_c()
+
+pub_percap
+pub_hectare
+
+pub_num<- ggplot(london2) + 
+  geom_sf(aes(fill = num_pubs))
+
+grid.arrange(pub_hectare, pub_num, nrow = 1, ncol = 2)
+
+
+
+
+```
+
