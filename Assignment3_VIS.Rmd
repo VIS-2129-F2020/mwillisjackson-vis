@@ -1,9 +1,15 @@
 ---
 title: "Assignment3_VIS"
 author: "Megan Willis-Jackson"
-date: "9/25/2020"
-output: html_document
+date: "9/29/2020"
+output: 
+  html_document: 
+    toc: yes
+    toc_float: yes
+    theme: cerulean
 ---
+
+# Load Libraries
 
 ```{r, message=F}
 library(sf)
@@ -20,33 +26,29 @@ library(ggimage)
 ```
 
 
-```{r, download geo data}
-london_camden<- st_read("https://opendata.camden.gov.uk/api/geospatial/peea-jaju?method=export&format=KML", quiet = T)
+I don't end up using all of the below datasets in my subsequent analysis, but am leaving them here in case I want to use them later. I have commented out the ones I don't use to speed up the knitting process.
 
+```{r, download geo data, message=F, comment='hide'}
 london<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/London-wards-2018/London-wards-2018_ESRI", quiet = T)
-
-priv_pub1<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/GiGL_POPS_Shp/GiGL_POPS_font_point.shp", quiet = T)
-
-priv_pub2<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/GiGL_POPS_Shp/GiGL_POPS_region.shp", quiet = T)
-
-priv_pub<- rbind(priv_pub2, priv_pub1)
 
 openspace<- st_read("https://data.london.gov.uk/download/designated_open_space/03cb12ea-d6ef-46f2-9d8e-b95380af1a24/Designated_Open_Space.gpkg", quiet = T)
 
-housingzones<- st_read("https://data.london.gov.uk/download/housing_zones/3239c52f-0c34-41a3-bf18-1408ee53010f/Housing_Zones.gpkg", quiet = T)
+#housingzones<- st_read("https://data.london.gov.uk/download/housing_zones/3239c52f-0c34-41a3-bf18-1408ee53010f/Housing_Zones.gpkg", quiet = T)
 
-bus_lowems<- st_read("https://data.london.gov.uk/download/low_emission_bus_zones/9eacb8ee-345b-49e6-97d9-b3677c62652c/Low_Emission_Bus_Zones_line.gpkg", quiet = T)
+#bus_lowems<- st_read("https://data.london.gov.uk/download/low_emission_bus_zones/9eacb8ee-345b-49e6-97d9-b3677c62652c/Low_Emission_Bus_Zones_line.gpkg", quiet = T)
 
+#I'm commenting this line out because it takes forever to load (huge dataset), but if you're running
+#it for the first time you should remove the #
 osm<- st_read("http://download.geofabrik.de/europe/great-britain/england/greater-london-latest.osm.pbf", quiet = T)
 
-pop<- read.csv("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/population-estimates-single-year-age.csv")
+#pop<- read.csv("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/population-estimates-single-year-age.csv")
 
-london<- merge(london, pop, by.x = "LAGSSCODE", by.y = "Code")
-london<- london[,1:8]
-london_bor<- unique(london$DISTRICT)
-london_bor
+#london<- merge(london, pop, by.x = "LAGSSCODE", by.y = "Code")
+#london<- london[,1:8]
+#london_bor<- unique(london$DISTRICT)
+#london_bor
 
-postbox<- osm[which(grepl("post_box",osm$other_tags) == T),]
+#postbox<- osm[which(grepl("post_box",osm$other_tags) == T),]
 
 pub<- osm[which(grepl("public_transport", osm$other_tags) == F),]
 pub<- pub[which(grepl("pub", pub$other_tags) == T),]
@@ -57,18 +59,23 @@ speedcam<- osm[which(osm$highway == "speed_camera"),]
 
 noise_night<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/Road_Lnight_London", quiet = T)
 
-bike<- get_cid_lines("cycle_lane_track")
-traf_calm<- get_cid_points("traffic_calming")
+#bike<- get_cid_lines("cycle_lane_track")
+#traf_calm<- get_cid_points("traffic_calming")
 
 ```
 
 
-```{r transform to same projection}
+# Selected Variables
 
-#transform bike and openspace to same projection
+I will work with 5 variables:
+1. London neighborhoods (polygons)
+2. London designated openspace (polygons)
+3. London speedcams (points)
+4. London pubs (points)
+5. Banksy murals in London (points)
+
+```{r transform to same projection, message=F}
 uk_proj<- "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs"
-
-uk_proj2<- "+proj=longlat +ellps=airy +no_defs"
 
 london_transform<- london %>%
   st_transform(crs = uk_proj)
@@ -76,13 +83,16 @@ london_transform<- london %>%
 openspace_transform<- openspace %>%
   st_transform(crs = uk_proj)
 
-bike_transform<- bike %>%
-  st_transform(crs = uk_proj)
+#bike_transform<- bike %>%
+ # st_transform(crs = uk_proj)
 
-housing_transform<- housingzones %>%
-  st_transform(crs = uk_proj)
+#housing_transform<- housingzones %>%
+ # st_transform(crs = uk_proj)
 
 noise_night_loud<- noise_night[which(noise_night$NoiseClass == ">=70.0"),] %>%
+  st_transform(crs = uk_proj)
+
+noise_night_transform<- noise_night %>%
   st_transform(crs = uk_proj)
 
 speedcam_transform<- speedcam %>%
@@ -96,7 +106,9 @@ banksy_transform<- banksy %>%
 
 ```
 
-```{r additional changes, fig.height=15}
+```{r additional variable changes (banksy variable),message=F}
+#the below code links an image of the Banksy mural with the dataframe so that
+#the images can be called on a ggplot later on.
 banksy_transform$image <- c("https://uploads3.wikiart.org/images/banksy.jpg",
                             "https://uploads3.wikiart.org/images/banksy.jpg",
                             "https://i.pinimg.com/originals/53/3b/dd/533bddad83f1dcdd48d22b2109a8d16c.jpg",
@@ -117,46 +129,16 @@ banksy_transform$y <- substr(banksy_transform$geometry, 20, 36)
 banksy_transform$y <- gsub(")","",banksy_transform$y)
 banksy_transform$y <- as.numeric(banksy_transform$y)
 
-ggplot(london_transform) +
-  geom_sf(aes(fill = DISTRICT, alpha = .3), color = NA) +
-    geom_sf(data = pub_transform) +
-geom_image(data = banksy_transform, aes(x = x, y = y, image=image), size = .05, angle = 45) +
-  theme(legend.position = "none")
-
 ```
 
-```{r visualize projections, fig.height=15}
+This map is me just playing around with some more variables; there's no analysis going on here but I would like to keep them here so that I'm reminded to play around with them some more in the future.
 
-ggplot(london_transform) +
-  geom_sf(aes(fill = DISTRICT, alpha = .5), color = NA) +
-  geom_sf(data = openspace_transform, color = NA, fill = "darkgreen", alpha = .8) +
-  geom_sf(data = pub_transform, color = "orange") +
-  theme(legend.position = "none") +
-  scale_fill_viridis_d(alpha = .5) +
-  annotation_scale()
+# Maps
 
-ggplot(london_transform) +
-  geom_sf() +
-  geom_sf(data = banksy_transform)
+## Speedcams within 0.5 km of a London Pub
+Just over half of London's 2,650 pubs are within half a kilometer of a speedcam.
 
-loud_plot<- ggplot(noise_night_loud) 
-
-loud_plot +
-  geom_sf(data = openspace_transform, fill = "darkgreen", color = NA) +
-  geom_sf(aes(color = NoiseClass)) +
-  geom_sf(data = speedcam_transform, fill = "red", size = 10,
-          aes(color = NA))
-
-noise_plot<- ggplot(noise_night) +
-  geom_sf(data = openspace_transform, fill = "darkgreen", color = NA) +
-  geom_sf(aes(color = NoiseClass))
-
-grid.arrange(loud_plot, noise_plot, nrow = 1, ncol = 2)
-
-
-```
-
-```{r points near points}
+```{r points near points, message=F}
 pub_buffer<- st_buffer(pub_transform, dist = 500) %>%
   st_union()
 
@@ -168,7 +150,7 @@ pub_cams<- speedcam_transform[pub_buffer,]
 
 ggplot(pub_buffer) +
   geom_sf() +
-  geom_sf(data = pub_cams) +
+  geom_sf(data = pub_cams, size = .01) +
   geom_sf(data = speedcam_transform) +
   theme_map()
 
@@ -184,41 +166,212 @@ n_cams<- length(speedcam2$by_pub)
 pct_pub_cams<- n_pub_cams / n_cams
 pct_pub_cams
 
-```
-
-```{r points in polygons, fig.height=15}
-london2<- london %>%
-  mutate(num_pubs = lengths(st_covers(london_transform, pub_transform)),
-         perhacre = num_pubs / HECTARES,
-         ALL.AGES = gsub(",","",ALL.AGES),
-         population = as.numeric(ALL.AGES))
-
-london_areapubs<- aggregate(cbind(num_pubs, HECTARES) ~ DISTRICT, data = london2, FUN = sum)
-
-colnames(london_areapubs)<- c("DISTRICT","num_pubs_borough","hectares_borough")
-
-london2<- merge(london2, london_areapubs) %>%
-  mutate(perhacre_borough = num_pubs_borough / hectares_borough,
-         percapita_borough = num_pubs_borough / population)
-
-pub_hectare<- ggplot(london2) +
-  geom_sf(aes(fill = ALL.AGES)) +
-  scale_fill_viridis_d()
-
-pub_percap<- ggplot(london2) +
-  geom_sf(aes(fill = percapita_borough), color = NA) +
-  scale_fill_viridis_c()
-
-pub_percap
-pub_hectare
-
-pub_num<- ggplot(london2) + 
-  geom_sf(aes(fill = num_pubs))
-
-grid.arrange(pub_hectare, pub_num, nrow = 1, ncol = 2)
-
-
-
+ggplot(london_transform) +
+  geom_sf(color = NA) +
+  geom_sf(data = speedcam2,
+          aes(color = by_pub), size = 2) +
+  scale_color_manual(values = c("black","red"),
+                     name = "London Speedcams by \nDistance to a Pub",
+                     labels = c("No pub within 500 m",
+                                "Pub within 500m")) +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_fancy_orienteering()) +
+  theme_map() +
+  theme(legend.background = element_rect(fill = alpha("white",.5), color = "grey"),
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5)
 
 ```
+
+## Number of Pubs by London Neighborhood
+
+London has a lot of pubs. The number of pubs present per neighborhood increases the closer the neighborhood is to the center of London, unsurprisingly given the increased population density than in the outer ring. This isn't visualized in the maps below, but the neighborhood with the highest pub-count by population is the City and County of London (which is tiny and right in the center), which has 1.2 pubs per 100 people.
+
+```{r number and proportion of pubs in each neighborhood, message=F}
+london_transform<- london_transform %>%
+  mutate(num_pubs = lengths(st_covers(london_transform, pub_transform)))
+
+#proportion of pubs
+london_transform<- london_transform %>%
+  mutate(prop_pubs = num_pubs / length(pub_transform$osm_id))
+
+num_pubs_map<- ggplot(london_transform) +
+  geom_sf(color = NA,
+          aes(fill = num_pubs)) +
+  scale_fill_continuous_tableau(name = "London \nNeighborhoods \nby Number of Pubs") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_fancy_orienteering()) +
+  theme_map() +
+  theme(legend.background = element_rect(fill = alpha("white", .5),
+                                         color = "black"),
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5)
+
+prop_pubs_map<- ggplot(london_transform) +
+  geom_sf(color = NA,
+          aes(fill = prop_pubs)) +
+  scale_fill_continuous_tableau(name = "London \nNeighborhoods \nby Proportion of \nLondon Pubs") +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_fancy_orienteering()) +
+  theme_map() +
+  theme(legend.background = element_rect(fill = alpha("white", .5),
+                                         color = "black"),
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5)
+
+grid.arrange(num_pubs_map, prop_pubs_map, nrow = 1, ncol = 2)
+
+
+```
+
+## Density of Pubs by London Neighborhoods
+
+As shown above, not only do the neighborhoods closest to the center of London have the highest number of pubs, they also have the highest density, given that they cover a smaller area.
+
+```{r density of points in polygons, message=F}
+london_transform<- london_transform %>%
+  mutate(area = set_units(st_area(london_transform), km^2)) %>%
+  mutate(pub_dens = as.numeric(num_pubs / area))
+
+ggplot(london_transform) +
+  geom_sf(color = NA,
+          aes(fill = pub_dens)) +
+  scale_fill_viridis_c(name = "London Neighborhoods \nby Pubs per \nSquare Kilometer",
+                       breaks = seq(0, 120, by = 20)) +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_minimal()) +
+  annotation_scale(location = "br") +
+  theme_map() +
+  theme(legend.background = element_rect(fill = alpha("white",.6), color = "black"),
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5)
+
+
+```
+
+## Overlap of Openspace and London Neighborhoods
+
+London also has a ton of open space. Only a handful of neighborhoods out of over 600 have no designated open space within their boundaries.
+
+```{r openspace in each neighborhood (polygons), message=F}
+london_transform<- london_transform %>%
+  mutate(num_open = lengths(st_overlaps(london_transform, openspace_transform))) %>%
+  mutate(has_open = num_open > 0)
+
+n_open_nhoods<- sum(london_transform$has_open)
+n_open_nhoods
+
+ggplot(london_transform) +
+  geom_sf(aes(fill = has_open), color = NA) +
+  scale_fill_manual(values = c("lightgrey","seagreen"),
+                    name = "London Neighborhoods \nby Presence of Openspace",
+                    labels = c("No Open Space in Neighborhood",
+                               "Open Space in Neighborhood")) +
+  annotation_scale(location = "br") +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_nautical()) +
+  theme_map() +
+  theme(legend.background = element_rect(fill = alpha("white", .5),
+                                         color = "grey"),
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5)
+
+
+```
+
+
+## Distance from Pub to Nearest Openspace
+
+Given there is so much open space in London as well as so many pubs, it's not all that surprising that the vast majority of pubs are within about 300 m of designated open space. To add a little more specificity though, the average distance from a pub to the nearest open space is about 151 m.
+
+```{r distance of pub to nearest openspace, message=F}
+pub_transform<- pub_transform %>%
+  mutate(open_dist = st_nn(pub_transform, openspace_transform,
+                          returnDist = T)$dist) %>%
+  mutate(open_dist = as.numeric(open_dist))
+
+avg_open_dist<- mean(pub_transform$open_dist)
+avg_open_dist
+
+ggplot(openspace_transform) +
+  geom_sf(fill = "darkgreen", color = NA) +
+  geom_sf(data = pub_transform, size = .8,
+          aes(color = open_dist)) +
+  scale_color_gradient(name = "Pub Distance \nfrom Nearest \nOpenspace (m)") +
+  theme_map() +
+  annotation_scale(bar_cols = c("white","lightblue"),
+                   location = "br") +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_fancy_orienteering(fill = "lightblue", text_col = "black")) +
+  theme(panel.background = element_rect(fill = "darkgrey"),
+        legend.background = element_rect(fill = alpha("white",.5)),
+        legend.direction = "horizontal",
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5)
+
+```
+
+## Distance between Banksy Murals and Nearest Pub
+
+If you were to happen upon a Banksy mural, how far on average would you have to go to get to the nearest pub at which you can contemplate the themes you've just witnessed? Not very far, as it turns out. Of the 11 murals in the dataset, they are an average of 130.6 meters away from the nearest London pub.
+
+```{r avg distance between Banksy mural and its nearest pub, message=F, fig.height=5.8, fig.width=5.8}
+banksy_transform<- banksy_transform %>%
+  mutate(pub_dist = st_nn(banksy_transform, pub_transform,
+                          returnDist = T)$dist) %>%
+  mutate(pub_dist = as.numeric(pub_dist))
+
+avg_pub_dist<- mean(banksy_transform$pub_dist)
+
+avg_pub_dist
+
+right_side<- st_bbox(banksy_transform)$xmax+1000
+left_side<- st_bbox(banksy_transform)$xmin-1000
+top_side<- st_bbox(banksy_transform)$ymax+1000
+bottom_side<- st_bbox(banksy_transform)$ymin-1000
+
+banksy_map<- ggplot(london_transform) +
+  geom_sf(aes(fill = DISTRICT), color = NA, alpha = .4, show.legend = F) +
+  geom_sf(data = banksy_transform, aes(color = pub_dist)) +
+  geom_sf_label(aes(label = ifelse(NAME == "Regent's Park" & DISTRICT == "Camden", "Camden\n",
+                            ifelse(NAME == "Holloway", "Islington", 
+                            ifelse(NAME == "Shadwell", "Tower \nHamlets",
+                            ifelse(NAME == "Bishop's", "Lambeth",
+                            ifelse(NAME == "Bread Street", "City of \nLondon",
+                            ifelse(NAME == "Hackney Central", "Hackney",
+                            ifelse(NAME == "St. James's", "\n\n\n\nCity of \nWestminster",
+                            ifelse(NAME == "Stratford and New Town", "Newham", ""))))))))), 
+                size = 3, fill = NA, label.size = NA) +
+  geom_point(data = banksy_transform, aes(x = x, y = y, color = pub_dist), size = 21, shape = 15, alpha = .7) +
+  geom_image(data = banksy_transform, aes(x = x, y = y, image=image), size = .1) +
+  coord_sf(xlim = c(left_side, right_side),
+           ylim = c(bottom_side, top_side), expand = F) +
+  scale_color_viridis_c(name = "Distance to \nNearest Pub \n(meters)") +
+  scale_fill_grey() +
+  theme_map() +
+  theme(legend.justification = c(-1.65, -7.4),
+        legend.background = element_rect(fill = alpha("white",.4),
+        color = "grey"),
+        legend.direction = "horizontal",
+        legend.title.align = .5,
+        legend.title = element_text(face = "bold")) +
+  labs(title = "Distance from a Banksy Mural to the Nearest Pub for Contemplation") +
+  annotation_scale(location = "bl") +
+  annotation_north_arrow(location = "br",
+                         style = north_arrow_fancy_orienteering())
+  
+grid.arrange(banksy_map +
+               labs(caption = "*OSM provided the location of two murals that \ndid not have an associated mural title, so a classic Banksy mural is portrayed instead."))
+
+```
+
+
+
+
+
+
+
 
