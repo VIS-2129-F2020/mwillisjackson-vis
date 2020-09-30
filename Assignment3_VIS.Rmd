@@ -68,6 +68,7 @@ noise_night<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/
 # Selected Variables
 
 I will work with 5 variables:
+
 1. London neighborhoods (polygons)
 2. London designated openspace (polygons)
 3. London speedcams (points)
@@ -130,8 +131,6 @@ banksy_transform$y <- gsub(")","",banksy_transform$y)
 banksy_transform$y <- as.numeric(banksy_transform$y)
 
 ```
-
-This map is me just playing around with some more variables; there's no analysis going on here but I would like to keep them here so that I'm reminded to play around with them some more in the future.
 
 # Maps
 

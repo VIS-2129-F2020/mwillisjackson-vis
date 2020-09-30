@@ -1571,7 +1571,14 @@ noise_night&lt;- st_read(&quot;C:/Users/mwill/OneDrive - Harvard University/2020
 </div>
 <div id="selected-variables" class="section level1">
 <h1>Selected Variables</h1>
-<p>I will work with 5 variables: 1. London neighborhoods (polygons) 2. London designated openspace (polygons) 3. London speedcams (points) 4. London pubs (points) 5. Banksy murals in London (points)</p>
+<p>I will work with 5 variables:</p>
+<ol style="list-style-type: decimal">
+<li>London neighborhoods (polygons)</li>
+<li>London designated openspace (polygons)</li>
+<li>London speedcams (points)</li>
+<li>London pubs (points)</li>
+<li>Banksy murals in London (points)</li>
+</ol>
 <pre class="r"><code>uk_proj&lt;- &quot;+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs&quot;
 
 london_transform&lt;- london %&gt;%
@@ -1621,7 +1628,6 @@ banksy_transform$x &lt;- as.numeric(banksy_transform$x)
 banksy_transform$y &lt;- substr(banksy_transform$geometry, 20, 36)
 banksy_transform$y &lt;- gsub(&quot;)&quot;,&quot;&quot;,banksy_transform$y)
 banksy_transform$y &lt;- as.numeric(banksy_transform$y)</code></pre>
-<p>This map is me just playing around with some more variables; there’s no analysis going on here but I would like to keep them here so that I’m reminded to play around with them some more in the future.</p>
 </div>
 <div id="maps" class="section level1">
 <h1>Maps</h1>
