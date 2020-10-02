@@ -6,7 +6,8 @@ output:
   html_document: 
     toc: yes
     toc_float: yes
-    theme: cerulean
+    cerulean: yes
+    code_folding: hide
 ---
 
 # Load Libraries
@@ -28,7 +29,7 @@ library(ggimage)
 
 I don't end up using all of the below datasets in my subsequent analysis, but am leaving them here in case I want to use them later. I have commented out the ones I don't use to speed up the knitting process.
 
-```{r, download geo data, message=F, comment='hide'}
+```{r, download geo data, message=F, comment='hide', warning=F}
 london<- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Data/London-wards-2018/London-wards-2018_ESRI", quiet = T)
 
 openspace<- st_read("https://data.london.gov.uk/download/designated_open_space/03cb12ea-d6ef-46f2-9d8e-b95380af1a24/Designated_Open_Space.gpkg", quiet = T)
@@ -75,7 +76,7 @@ I will work with 5 variables:
 4. London pubs (points)
 5. Banksy murals in London (points)
 
-```{r transform to same projection, message=F}
+```{r transform to same projection, message=F, comment='hide', warning=F}
 uk_proj<- "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs"
 
 london_transform<- london %>%
@@ -107,7 +108,7 @@ banksy_transform<- banksy %>%
 
 ```
 
-```{r additional variable changes (banksy variable),message=F}
+```{r additional variable changes (banksy variable),message=F, comment='hide', warning=F}
 #the below code links an image of the Banksy mural with the dataframe so that
 #the images can be called on a ggplot later on.
 banksy_transform$image <- c("https://uploads3.wikiart.org/images/banksy.jpg",
@@ -137,7 +138,7 @@ banksy_transform$y <- as.numeric(banksy_transform$y)
 ## Speedcams within 0.5 km of a London Pub
 Just over half of London's 2,650 pubs are within half a kilometer of a speedcam.
 
-```{r points near points, message=F}
+```{r points near points, message=F, comment='hide', warning=F}
 pub_buffer<- st_buffer(pub_transform, dist = 500) %>%
   st_union()
 
@@ -187,7 +188,7 @@ ggplot(london_transform) +
 
 London has a lot of pubs. The number of pubs present per neighborhood increases the closer the neighborhood is to the center of London, unsurprisingly given the increased population density than in the outer ring. This isn't visualized in the maps below, but the neighborhood with the highest pub-count by population is the City and County of London (which is tiny and right in the center), which has 1.2 pubs per 100 people.
 
-```{r number and proportion of pubs in each neighborhood, message=F}
+```{r number and proportion of pubs in each neighborhood, message=F, comment='hide', warning=F}
 london_transform<- london_transform %>%
   mutate(num_pubs = lengths(st_covers(london_transform, pub_transform)))
 
@@ -230,7 +231,7 @@ grid.arrange(num_pubs_map, prop_pubs_map, nrow = 1, ncol = 2)
 
 As shown above, not only do the neighborhoods closest to the center of London have the highest number of pubs, they also have the highest density, given that they cover a smaller area.
 
-```{r density of points in polygons, message=F}
+```{r density of points in polygons, message=F, comment='hide', warning=F}
 london_transform<- london_transform %>%
   mutate(area = set_units(st_area(london_transform), km^2)) %>%
   mutate(pub_dens = as.numeric(num_pubs / area))
@@ -255,7 +256,7 @@ ggplot(london_transform) +
 
 London also has a ton of open space. Only a handful of neighborhoods out of over 600 have no designated open space within their boundaries.
 
-```{r openspace in each neighborhood (polygons), message=F}
+```{r openspace in each neighborhood (polygons), message=F, comment='hide', warning=F}
 london_transform<- london_transform %>%
   mutate(num_open = lengths(st_overlaps(london_transform, openspace_transform))) %>%
   mutate(has_open = num_open > 0)
@@ -265,7 +266,7 @@ n_open_nhoods
 
 ggplot(london_transform) +
   geom_sf(aes(fill = has_open), color = NA) +
-  scale_fill_manual(values = c("lightgrey","seagreen"),
+  scale_fill_manual(values = c("lightgrey","seagreen4"),
                     name = "London Neighborhoods \nby Presence of Openspace",
                     labels = c("No Open Space in Neighborhood",
                                "Open Space in Neighborhood")) +
@@ -286,7 +287,7 @@ ggplot(london_transform) +
 
 Given there is so much open space in London as well as so many pubs, it's not all that surprising that the vast majority of pubs are within about 300 m of designated open space. To add a little more specificity though, the average distance from a pub to the nearest open space is about 151 m.
 
-```{r distance of pub to nearest openspace, message=F}
+```{r distance of pub to nearest openspace, message=F, comment='hide', warning=F}
 pub_transform<- pub_transform %>%
   mutate(open_dist = st_nn(pub_transform, openspace_transform,
                           returnDist = T)$dist) %>%
@@ -296,7 +297,7 @@ avg_open_dist<- mean(pub_transform$open_dist)
 avg_open_dist
 
 ggplot(openspace_transform) +
-  geom_sf(fill = "darkgreen", color = NA) +
+  geom_sf(fill = "darkseagreen2", color = NA) +
   geom_sf(data = pub_transform, size = .8,
           aes(color = open_dist)) +
   scale_color_gradient(name = "Pub Distance \nfrom Nearest \nOpenspace (m)") +
@@ -305,7 +306,7 @@ ggplot(openspace_transform) +
                    location = "br") +
   annotation_north_arrow(location = "tr",
                          style = north_arrow_fancy_orienteering(fill = "lightblue", text_col = "black")) +
-  theme(panel.background = element_rect(fill = "darkgrey"),
+  theme(panel.background = element_rect(fill = "grey95"),
         legend.background = element_rect(fill = alpha("white",.5)),
         legend.direction = "horizontal",
         legend.title = element_text(face = "bold"),
@@ -317,7 +318,7 @@ ggplot(openspace_transform) +
 
 If you were to happen upon a Banksy mural, how far on average would you have to go to get to the nearest pub at which you can contemplate the themes you've just witnessed? Not very far, as it turns out. Of the 11 murals in the dataset, they are an average of 130.6 meters away from the nearest London pub.
 
-```{r avg distance between Banksy mural and its nearest pub, message=F, fig.height=5.8, fig.width=5.8}
+```{r avg distance between Banksy mural and its nearest pub, message=F, comment='hide', warning=F, fig.height=5.8, fig.width=5.8}
 banksy_transform<- banksy_transform %>%
   mutate(pub_dist = st_nn(banksy_transform, pub_transform,
                           returnDist = T)$dist) %>%
@@ -344,7 +345,7 @@ banksy_map<- ggplot(london_transform) +
                             ifelse(NAME == "St. James's", "\n\n\n\nCity of \nWestminster",
                             ifelse(NAME == "Stratford and New Town", "Newham", ""))))))))), 
                 size = 3, fill = NA, label.size = NA) +
-  geom_point(data = banksy_transform, aes(x = x, y = y, color = pub_dist), size = 21, shape = 15, alpha = .7) +
+  geom_point(data = banksy_transform, aes(x = x, y = y, color = pub_dist), size = 25, shape = 15, alpha = .7) +
   geom_image(data = banksy_transform, aes(x = x, y = y, image=image), size = .1) +
   coord_sf(xlim = c(left_side, right_side),
            ylim = c(bottom_side, top_side), expand = F) +
