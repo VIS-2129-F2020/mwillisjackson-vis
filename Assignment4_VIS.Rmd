@@ -18,7 +18,7 @@ library(ggthemes)
 library(ggspatial)
 library(raster)
 library(units)
-
+library(data.table)
 
 
 ```
@@ -101,23 +101,23 @@ otpcon <- otp_connect()
 nola_french_performance<- NOLA_performance[nola_french,]
 
 iso_nola_french <- otp_isochrone(otpcon = otpcon, fromPlace = nola_french_performance,
-                                 mode = "CAR", cutoffSec = 500) %>%
+                                 mode = "CAR", cutoffSec = 600) %>%
   st_transform(crs = LA_state_plane) %>%
   mutate(mode = "drive")
 
-iso_6min_walk <- 
+iso_5min_walk <- 
   otp_isochrone(otpcon = otpcon, fromPlace = NOLA_performance, 
-                mode = "WALK", cutoffSec = 360) %>%
+                mode = "WALK", cutoffSec = 300) %>%
   st_transform(crs = LA_state_plane) %>%
   mutate(mode = "walk")
 
-iso_6min_bike <- 
+iso_5min_bike <- 
   otp_isochrone(otpcon = otpcon, fromPlace = NOLA_performance, 
-                mode = "BICYCLE", cutoffSec = 360) %>%
+                mode = "BICYCLE", cutoffSec = 300) %>%
   st_transform(crs = LA_state_plane) %>%
   mutate(mode = "bike")
 
-iso_all_modes <- rbind(iso_6min_bike, iso_6min_walk)
+iso_all_modes <- rbind(iso_5min_bike, iso_5min_walk)
 
 otp_stop()
 ```
@@ -125,18 +125,18 @@ otp_stop()
 
 ```{r}
 
-right_side <- st_bbox(iso_nola_french)$xmax-700
-left_side  <- st_bbox(iso_nola_french)$xmin+400
-top_side <- st_bbox(iso_nola_french)$ymax-1100
-bottom_side <- st_bbox(iso_nola_french)$ymin-500
+right_side <- st_bbox(iso_nola_french)$xmax+1000
+left_side  <- st_bbox(iso_nola_french)$xmin+2000
+top_side <- st_bbox(iso_nola_french)$ymax-1000
+bottom_side <- st_bbox(iso_nola_french)$ymin+500
 
 ggplot(iso_all_modes) +
   geom_sf(data = nola_streets, color = "grey") +
-  geom_sf(aes(fill = mode), alpha = 0.5) +
+  geom_sf(aes(fill = mode), color = NA, alpha = 0.5) +
   geom_sf(data = NOLA_performance) +
   coord_sf(xlim = c(left_side, right_side), 
            ylim = c(bottom_side, top_side), expand = FALSE) +
-  scale_fill_solarized(name = "Area that is reachable \nwithin 6 minutes",
+  scale_fill_solarized(name = "Area that is reachable \nwithin 5 minutes",
                        labels = c("By bike", "By foot")) +
   annotation_north_arrow(location = "tl",
                          style = north_arrow_fancy_orienteering(line_col = "black",fill = "black")) +
@@ -166,25 +166,46 @@ ggplot(iso_areas,
        aes(x = as.numeric(walk), y = as.numeric(bike))) +
   geom_point() +
   scale_x_continuous(name = 
-                       "\nArea within a six minute walking distance\nof a performance venue (square km)") +
-  scale_y_continuous(name = "Area within a six minute biking distance\nof a performance venue (square km)\n") +
+                       "\nArea within a five minute walking distance\nof a performance venue (square km)") +
+  scale_y_continuous(name = "Area within a five minute biking distance\nof a performance venue (square km)\n") +
   theme_economist()
 
 ```
 
+
+The previous scatter plot shows the accessible area for each performance venue in downtown New Orleans that may be reached in six minutes by bike or on foot. Downtown New Orleans is here defined as any area of NOLA reachable within 10 minutes by car from the French Quarter. I am curious what the total area for each mode is. Summing them in their current form would not answer this specific question, though, because the venues are often very close to each other and overlap in isochrones. Below, I merge the areas by mode to prevent any area from being double counted and subsequently present a bar chart with the total accessible areas by each mode.
+
 ```{r total acreage}
-total_area_bike<- st_union(iso_6min_bike$geometry[iso_nola_french,])
+total_area_bike<- st_as_sf(st_union(iso_5min_bike$geometry[iso_nola_french,]))
 
-total_area_walk<- st_union(iso_6min_walk$geometry[iso_nola_french,])
+total_area_walk<- st_as_sf(st_union(iso_5min_walk$geometry[iso_nola_french,]))
 
-ggplot(total_area_bike) +
-  geom_sf(data = nola_streets) +
+#why doesn't this work??
+ggplot(nola_streets) +
   geom_sf() +
-  geom_sf(data = total_area_walk, fill = "red") +
+  geom_sf(data = total_area_bike, fill = "seagreen", color = "purple", alpha = .5) +
+  geom_sf(data = total_area_walk, fill = "red", alpha = .5) +
   geom_sf(data = NOLA_performance) +
   coord_sf(xlim = c(left_side, right_side), 
            ylim = c(bottom_side, top_side), expand = FALSE) +
-  theme_map()
+  theme_map() +
+  labs(caption = "Basemap Copyright OpenStreetMap contributors")
+
+
+#when this one works (difference is alpha)
+ggplot(nola_streets) +
+  geom_sf() +
+  geom_sf(data = total_area_bike, fill = "seagreen", color = NA) +
+  geom_sf(data = total_area_walk, fill = "red", alpha = .5, color = NA) +
+  geom_sf(data = NOLA_performance) +
+  coord_sf(xlim = c(left_side, right_side), 
+           ylim = c(bottom_side, top_side), expand = FALSE) +
+  theme_map() +
+  labs(caption = "Basemap Copyright OpenStreetMap contributors")
+```
+
+
+```{r }
 
 total_area_bike_sum<- set_units(st_area(total_area_bike), km^2)
 
@@ -204,13 +225,15 @@ ggplot(total_area,
                      labels = NULL, 
                      breaks = NULL) +
   scale_x_discrete(name = "Mode",
-                   labels = c("By Biking","By Walking")) +
+                   labels = c("Biking","Walking")) +
   geom_text(label = paste(prettyNum(total_area$area, digits = 3),"sq km"), 
             nudge_y = .4) +
   scale_fill_ordinal() +
+  labs(title = "Area Accessible Traveling Five Minutes from a\nPerformance Venue in Downtown New Orleans") +
   theme(legend.position = "none",
-        panel.background = element_rect(fill = "white")) +
-  labs(title = "Area Accessible Traveling Six Minutes from a Performance Venue in New Orleans")
+        panel.background = element_rect(fill = "white"),
+        plot.title = element_text(hjust = .5), 
+        axis.ticks.x = element_blank()) 
 
 
 ```
