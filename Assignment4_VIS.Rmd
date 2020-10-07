@@ -1,13 +1,18 @@
 ---
 title: "Assignment4_VIS"
 author: "Megan Willis-Jackson"
-date: "10/1/2020"
-output: html_document
+date: "10/7/2020"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    cerulean: yes
+    code_folding: hide
 ---
 
 
 
-
+# Data and Library Loading and Setup
 
 ```{r load libraries, message=F}
 library(osmdata)
@@ -18,31 +23,29 @@ library(ggthemes)
 library(ggspatial)
 library(raster)
 library(units)
-library(data.table)
-
+library(sp)
+library(stringr)
+library(rgeos)
+library(tidygeocoder)
 
 ```
 
-```{r load locations}
+```{r load locations, message=F, warning=F}
 NOLA_performance <- st_read(
-  "https://data.nola.gov/api/geospatial/d7bz-pa33?method=export&format=KML")
+  "https://data.nola.gov/api/geospatial/d7bz-pa33?method=export&format=KML",
+  quiet = T)
 
-nola_neighborhoods<- st_read("https://opendata.arcgis.com/datasets/e7daa4c977d14e1b9e2fa4d7aff81e59_0.kml?outSR=%7B%22latestWkid%22%3A3452%2C%22wkid%22%3A102682%7D")
+nola_neighborhoods<- st_read("https://opendata.arcgis.com/datasets/e7daa4c977d14e1b9e2fa4d7aff81e59_0.kml?outSR=%7B%22latestWkid%22%3A3452%2C%22wkid%22%3A102682%7D", quiet = T)
 
-nola_french<- st_read("https://opendata.arcgis.com/datasets/e7daa4c977d14e1b9e2fa4d7aff81e59_0.kml?where=OBJECTID%20%3E%3D%201077%20AND%20OBJECTID%20%3C%3D%201077&geometry=%7B%22xmin%22%3A-90.247%2C%22ymin%22%3A29.909%2C%22xmax%22%3A-89.813%2C%22ymax%22%3A30.013%2C%22type%22%3A%22extent%22%2C%22spatialReference%22%3A%7B%22wkid%22%3A4326%7D%7D&outSR=%7B%22latestWkid%22%3A3452%2C%22wkid%22%3A102682%7D")
-
-ggplot(nola_french) +
-  geom_sf() +
-  theme_map()
+nola_french<- st_read("https://opendata.arcgis.com/datasets/e7daa4c977d14e1b9e2fa4d7aff81e59_0.kml?where=OBJECTID%20%3E%3D%201077%20AND%20OBJECTID%20%3C%3D%201077&geometry=%7B%22xmin%22%3A-90.247%2C%22ymin%22%3A29.909%2C%22xmax%22%3A-89.813%2C%22ymax%22%3A30.013%2C%22type%22%3A%22extent%22%2C%22spatialReference%22%3A%7B%22wkid%22%3A4326%7D%7D&outSR=%7B%22latestWkid%22%3A3452%2C%22wkid%22%3A102682%7D", quiet = T)
 
 opq(bbox = 'New Orleans LA USA') %>%
   add_osm_feature(key = 'highway') %>%
   osmdata_xml(file = 'OTP/graphs/default/NOLA_streets.osm')
 
-#opq(bbox = 'New Orleans LA USA') %>%
- # add_osm_feature(key = 'public_transport') %>%
-  #osmdata_xml(file = 'OTP/graphs/default/NOLA_transit.osm')
-
+opq(bbox = 'New Orleans LA USA') %>%
+  add_osm_feature(key = 'leisure', value = 'park') %>%
+  osmdata_xml(file = 'OTP/graphs/default/NOLA_greenspace.osm')
 
 LA_state_plane <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.33333333333333 +x_0=1000000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
@@ -50,35 +53,21 @@ LA_state_plane <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.3333
 ```
 
 
-```{r}
+```{r load otp features, message=F}
 
 nola_street_features <- opq(bbox = 'New Orleans LA USA') %>%
   add_osm_feature(key = 'highway') %>%
   osmdata_sf()
 
+nola_green_features <- opq(bbox = 'New Orleans LA USA') %>%
+  add_osm_feature(key = 'leisure', value = 'park') %>%
+  osmdata_sf()
+
 nola_streets <- nola_street_features$osm_lines %>%
   st_transform(crs = LA_state_plane)
 
-nola_transit_features <- opq(bbox = 'New Orleans LA USA') %>%
-  add_osm_feature(key = 'public_transport') %>%
-  osmdata_sf()
+nola_green <- nola_green_features$osm_polygons
 
-nola_transit <- nola_transit_features$osm_points %>%
-  st_transform(crs = LA_state_plane)
-
-ggplot(NOLA_performance) +
-  geom_sf(data = nola_neighborhoods) +
-  geom_sf() +
-  theme_map()
-
-ggplot(nola_streets) +
-  geom_sf() +
-  geom_sf(data = nola_transit, color = "red", size = .5) +
-  theme_map()
-
-ggplot(nola_transit) +
-  geom_sf() +
-  theme_map()
 ```
 
 
@@ -96,8 +85,11 @@ otpcon <- otp_connect()
 
 ```
 
+# Isochrones
 
-```{r}
+## Create Isochrones
+
+```{r create isochrones, message=F, warning=F}
 nola_french_performance<- NOLA_performance[nola_french,]
 
 iso_nola_french <- otp_isochrone(otpcon = otpcon, fromPlace = nola_french_performance,
@@ -122,8 +114,11 @@ iso_all_modes <- rbind(iso_5min_bike, iso_5min_walk)
 otp_stop()
 ```
 
+## Map Isochrones
 
-```{r}
+The map below shows the isochrones for 5 minutes of walking and biking from each of the performance venues located in downtown New Orleans. Downtown New Orleans is here defined as any area of NOLA reachable within 10 minutes by car from the French Quarter, which may not align with the technical definition.
+
+```{r map isochrones, message=F}
 
 right_side <- st_bbox(iso_nola_french)$xmax+1000
 left_side  <- st_bbox(iso_nola_french)$xmin+2000
@@ -151,7 +146,11 @@ ggplot(iso_all_modes) +
 
 ```
 
-```{r compare isochrone areas}
+## Isochrone Scatterplot
+
+The scatter plot below shows the area accessible by biking versus by walking from the same performance venue. This chart is decently linear, but some deviations from what would be a perfect line indicate that there are venues in places not easily accessible by bikes and also some that bikes can travel proportionally faster/with more ease than they could on foot.
+
+```{r compare isochrone areas, message=F}
 iso_relevant<- iso_all_modes[iso_nola_french,]
 
 iso_relevant<- iso_relevant %>%
@@ -172,40 +171,36 @@ ggplot(iso_areas,
 
 ```
 
+## Isochrone Total Areas
 
-The previous scatter plot shows the accessible area for each performance venue in downtown New Orleans that may be reached in six minutes by bike or on foot. Downtown New Orleans is here defined as any area of NOLA reachable within 10 minutes by car from the French Quarter. I am curious what the total area for each mode is. Summing them in their current form would not answer this specific question, though, because the venues are often very close to each other and overlap in isochrones. Below, I merge the areas by mode to prevent any area from being double counted and subsequently present a bar chart with the total accessible areas by each mode.
+The previous scatter plot shows the accessible area for each performance venue in downtown New Orleans that may be reached in six minutes by bike or on foot. Again, downtown New Orleans is here defined as any area of NOLA reachable within 10 minutes by car from the French Quarter. I am curious what the total area for each mode is. Summing them in their current form would not answer this specific question, though, because the venues are often very close to each other and overlap in isochrones. Below, I merge the areas by mode to prevent any area from being double counted and subsequently present a bar chart with the total accessible areas by each mode.
 
-```{r total acreage}
+```{r total acreage, message=F}
 total_area_bike<- st_as_sf(st_union(iso_5min_bike$geometry[iso_nola_french,]))
 
 total_area_walk<- st_as_sf(st_union(iso_5min_walk$geometry[iso_nola_french,]))
 
-#why doesn't this work??
 ggplot(nola_streets) +
-  geom_sf() +
-  geom_sf(data = total_area_bike, fill = "seagreen", color = "purple", alpha = .5) +
-  geom_sf(data = total_area_walk, fill = "red", alpha = .5) +
-  geom_sf(data = NOLA_performance) +
+  geom_sf(data = total_area_bike, fill = "darkslategray4", color = NA) +
+  geom_sf(color = "black", alpha = .5) +
+  geom_sf(data = total_area_walk, fill = "goldenrod1", alpha = .6, color = NA) +
+  theme_map() +
   coord_sf(xlim = c(left_side, right_side), 
            ylim = c(bottom_side, top_side), expand = FALSE) +
-  theme_map() +
-  labs(caption = "Basemap Copyright OpenStreetMap contributors")
-
-
-#when this one works (difference is alpha)
-ggplot(nola_streets) +
-  geom_sf() +
-  geom_sf(data = total_area_bike, fill = "seagreen", color = NA) +
-  geom_sf(data = total_area_walk, fill = "red", alpha = .5, color = NA) +
-  geom_sf(data = NOLA_performance) +
-  coord_sf(xlim = c(left_side, right_side), 
-           ylim = c(bottom_side, top_side), expand = FALSE) +
-  theme_map() +
+  annotation_north_arrow(location = "tl",
+                         style = north_arrow_fancy_orienteering(line_col = "black",fill = "goldenrod1")) +
+  annotation_scale(location = "br", bar_cols = c("darkslategray4", alpha("goldenrod1", .8))) +
+  theme(legend.background = element_rect(fill = alpha("white",.5), color = "grey"),
+        legend.justification = c(-1.99,-.23),
+        legend.title = element_text(face = "bold"),
+        legend.title.align = .5,
+        legend.position = "right") +
   labs(caption = "Basemap Copyright OpenStreetMap contributors")
 ```
 
+The below bar chart shows the total distance accessible by 5 minutes of biking and 5 minutes of walking from all of the performance venues in downtown New Orleans. As expected, one can reach a much larger area by bike than by foot leaving any of the performance venues.
 
-```{r }
+```{r graph total area accessbile, message=F}
 
 total_area_bike_sum<- set_units(st_area(total_area_bike), km^2)
 
@@ -218,9 +213,8 @@ colnames(total_area)<- c("mode", "area")
 
 ggplot(total_area,
        aes(x = mode,
-           y = area,
-           fill = mode)) +
-  geom_col() +
+           y = area)) +
+  geom_col(fill = c("goldenrod1", "darkslategray4")) +
   scale_y_continuous(name = NULL, 
                      labels = NULL, 
                      breaks = NULL) +
@@ -228,7 +222,7 @@ ggplot(total_area,
                    labels = c("Biking","Walking")) +
   geom_text(label = paste(prettyNum(total_area$area, digits = 3),"sq km"), 
             nudge_y = .4) +
-  scale_fill_ordinal() +
+  #scale_fill_discrete(aes(fill = c("darkslategray4","goldenrod1"))) +
   labs(title = "Area Accessible Traveling Five Minutes from a\nPerformance Venue in Downtown New Orleans") +
   theme(legend.position = "none",
         panel.background = element_rect(fill = "white"),
@@ -237,3 +231,7 @@ ggplot(total_area,
 
 
 ```
+
+
+
+
