@@ -21,6 +21,7 @@ library(tidygeocoder)
 library(raster)
 library(RStoolbox)
 library(rgdal)
+library(plyr)
 
 ```
 
@@ -30,12 +31,12 @@ opq(bbox = 'Nozay Pays de la Loire France') %>%
   osmdata_xml(file = 'OTP/graphs/default/Nozay_streets.osm')
 
 opq(bbox = 'Nozay Pays de la Loire France') %>%
-  add_osm_feature(key = 'landuse', value = 'farmland') %>%
-  osmdata_xml(file = 'OTP/graphs/default/Nozay_farmland.osm')
+  add_osm_feature(key = 'building') %>%
+  osmdata_xml(file = 'OTP/graphs/default/Nozay_buildings.osm')
 
 opq(bbox = 'Nozay Pays de la Loire France') %>%
-  add_osm_feature(key = 'landuse', value = 'meadow') %>%
-  osmdata_xml(file = 'OTP/graphs/default/Nozay_meadow.osm')
+  add_osm_feature(key = 'landuse') %>%
+  osmdata_xml(file = 'OTP/graphs/default/Nozay_geo.osm')
 
 
 france_proj <- "+proj=lcc +lat_1=49.50000000000001 +lat_0=49.50000000000001 +lon_0=0 +k_0=0.999877341 +x_0=600000 +y_0=200000 +a=6378249.2 +b=6356515 +towgs84=-168,-60,320,0,0,0,0 +pm=paris +units=m +no_defs"
@@ -51,52 +52,101 @@ nozay_street_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
   add_osm_feature(key = 'highway') %>%
   osmdata_sf()
 
-nozay_farm_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
-  add_osm_feature(key = 'landuse', value = 'farmland') %>%
+nozay_building_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
+  add_osm_feature(key = 'building') %>%
   osmdata_sf()
 
-nozay_meadow_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
-  add_osm_feature(key = 'landuse', value = 'meadow') %>%
+nozay_landuse_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
+  add_osm_feature(key = 'landuse') %>%
   osmdata_sf()
 
 nozay_streets <- nozay_street_features$osm_lines  %>%
   st_transform(crs = france_proj)
 
-nozay_farm <- nozay_farm_features$osm_polygons %>%
+nozay_building <- nozay_building_features$osm_polygons %>%
   st_transform(crs = france_proj)
 
-nozay_meadow <- nozay_meadow_features$osm_polygons %>%
+nozay_landuse_poly <- nozay_landuse_features$osm_polygons %>%
   st_transform(crs = france_proj)
+
+nozay_landuse_mpoly <- nozay_landuse_features$osm_multipolygons %>%
+  st_transform(crs = france_proj)
+
+nozay_landuse<- st_as_sf(rbind.fill(nozay_landuse_poly, nozay_landuse_mpoly)) %>%
+  st_transform(crs = france_proj)
+
+nozay_landuse<- nozay_landuse[which(is.na(nozay_landuse$landuse)==F),]
 
 ggplot(nozay_streets) +
-  geom_sf(data = nozay_farm, fill = "gold", color = NA) +
-  geom_sf(data = nozay_meadow, fill = "darkseagreen", color = NA) +
   geom_sf(alpha = .7)  +
   theme_map()
 
-
+ggplot(nozay_landuse) +
+  geom_sf(aes(fill = landuse)) 
+  geom_sf(data = nozay_landuse_mpoly,
+          aes(fill = landuse))
 ```
 
-```{r import image, message=F, warning=F}
-nozay_image <- stack("C:/Users/mwill/OneDrive/Documents/ArcGIS/Projects/GeoreferencingVIS/Nozay_hand_8.tif")
+```{r import image, message=FALSE, warning=FALSE, fig.height=10, fig.width=10, fig.align=.5}
+nozay_image <- stack("C:/Users/mwill/OneDrive/Documents/ArcGIS/Projects/GeoreferencingVIS/Nozay_hand_9.tif")
 
 nozay_image <- projectRaster(nozay_image,
-                             crs = crs(france_proj))
+                             crs = crs(france_proj), quiet = T)
 
 ggRGB(nozay_image, r=1,g=2,b=3, alpha = .5) 
   coord_sf(crs = france_proj)
 
 ggplot(nozay_streets) +
-  #annotation_map_tile(type = "hotstyle") +
-  ggRGB(nozay_image, r=1, g=2, b=3, ggLayer = T, alpha = 1) +
+  geom_sf(data = nozay_landuse, color = NA,
+          aes(fill = landuse)) +
+  ggRGB(nozay_image, r=1, g=2, b=3, ggLayer = T, alpha = .85, ) +
   geom_sf(alpha = .1) +
-  geom_sf(data = nozay_farm, fill = "gold", color = NA, alpha = .7) +
-  geom_sf(data = nozay_meadow, fill = "seagreen", color = NA, alpha = .7) +
   coord_sf(xlim = c(nozay_image@extent@xmin, nozay_image@extent@xmax),
            ylim = c(nozay_image@extent@ymin, nozay_image@extent@ymax)) +
-  annotation_north_arrow(location = "tr", style = north_arrow_fancy_orienteering()) +
+  scale_fill_viridis_d(name = "Landuse Type") +
+  annotation_north_arrow(location = "bl", style = north_arrow_fancy_orienteering()) +
   annotation_scale(location = "br") +
-  theme_map()
+  annotate(geom = "text", x = 303450, y = -2800,
+           label = "Grandma's Cottage",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "deeppink",
+           size = 7) +
+  annotate(geom = "text", x = 303700, y = -2400,
+           label = "Upset the Dog's House",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "lightslateblue",
+           size = 5) +  
+  annotate(geom = "text", x = 302100, y = -2950,
+           label = "Cow Field",
+           fontface = "bold.italic",
+           hjust = .65,
+           color = "lightslateblue",
+           size = 5) +
+  annotate(geom = "text", x = 303800, y = -3500,
+           label = "Sunflower Field",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "lightslateblue",
+           size = 5) +  
+  annotate(geom = "text", x = 301800, y = -7200,
+           label = "Le Pierre Bleu",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "royalblue3", 
+           size = 5) + 
+  annotate(geom = "text", x = 301650, y = -6400,
+           label = "Super U",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "royalblue3", 
+           size = 5) + 
+  theme_map() +
+  theme(legend.background = element_rect(fill = alpha("white", .5), color = "grey"),
+        legend.title = element_text(face = "bold"),
+        legend.position = "bottom")
+
 
 ```
 
