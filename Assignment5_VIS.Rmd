@@ -2,8 +2,19 @@
 title: "Assignment5_VIS"
 author: "Megan Willis-Jackson"
 date: "10/18/2020"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    code_folding: hide
 ---
+
+# Introduction
+
+The area I chose to map for this assignment is where my grandmother lives in Nozay, France. It's a very rural town in the northwest of France, and is also my favorite place in the world to visit; it's so peaceful and scenic.
+
+The specific points I have called out include things I always looked forward to seeing on my running route, as well as the local supermarket and one of the few restaurants in town that was one of our favorites.
 
 ```{r load libraries, message=F, warning=F}
 library(osmdata)
@@ -25,6 +36,8 @@ library(plyr)
 
 ```
 
+# OpenStreetMaps Data
+
 ```{r location, message=F, warning=F}
 opq(bbox = 'Nozay Pays de la Loire France') %>%
   add_osm_feature(key = 'highway') %>%
@@ -36,8 +49,11 @@ opq(bbox = 'Nozay Pays de la Loire France') %>%
 
 opq(bbox = 'Nozay Pays de la Loire France') %>%
   add_osm_feature(key = 'landuse') %>%
-  osmdata_xml(file = 'OTP/graphs/default/Nozay_geo.osm')
+  osmdata_xml(file = 'OTP/graphs/default/Nozay_landuse.osm')
 
+opq(bbox = 'Nozay Pays de la Loire France') %>%
+  add_osm_feature(key = 'natural') %>%
+  osmdata_xml(file = 'OTP/graphs/default/Nozay_natural.osm')
 
 france_proj <- "+proj=lcc +lat_1=49.50000000000001 +lat_0=49.50000000000001 +lon_0=0 +k_0=0.999877341 +x_0=600000 +y_0=200000 +a=6378249.2 +b=6356515 +towgs84=-168,-60,320,0,0,0,0 +pm=paris +units=m +no_defs"
 
@@ -45,6 +61,7 @@ france_proj <- "+proj=lcc +lat_1=49.50000000000001 +lat_0=49.50000000000001 +lon
 
 ```
 
+## Variable Transformations 
 
 ```{r load otp features, message=F, warning=F}
 
@@ -58,6 +75,10 @@ nozay_building_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
 
 nozay_landuse_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
   add_osm_feature(key = 'landuse') %>%
+  osmdata_sf()
+
+nozay_nature_features <- opq(bbox = 'Nozay Pays de la Loire France') %>%
+  add_osm_feature(key = 'natural') %>%
   osmdata_sf()
 
 nozay_streets <- nozay_street_features$osm_lines  %>%
@@ -77,34 +98,66 @@ nozay_landuse<- st_as_sf(rbind.fill(nozay_landuse_poly, nozay_landuse_mpoly)) %>
 
 nozay_landuse<- nozay_landuse[which(is.na(nozay_landuse$landuse)==F),]
 
-ggplot(nozay_streets) +
-  geom_sf(alpha = .7)  +
-  theme_map()
+nozay_nature_poly <- nozay_nature_features$osm_polygons %>%
+  st_transform(crs = france_proj)
 
-ggplot(nozay_landuse) +
-  geom_sf(aes(fill = landuse)) 
-  geom_sf(data = nozay_landuse_mpoly,
-          aes(fill = landuse))
+nozay_nature_mpoly <- nozay_nature_features$osm_multipolygons %>%
+  st_transform(crs = france_proj)
+
+nozay_nature <- st_as_sf(rbind.fill(nozay_nature_poly, nozay_nature_mpoly)) %>%
+  st_transform(crs = france_proj)
+
 ```
 
-```{r import image, message=FALSE, warning=FALSE, fig.height=10, fig.width=10, fig.align=.5}
+# Import Handrawn Map from ArcGIS
+
+I scanned my original map into ArcGIS in order to georeference it. Once complete, I imported it here to add additional layers.
+
+```{r import image, message=FALSE, warning=FALSE, fig.align=.5}
 nozay_image <- stack("C:/Users/mwill/OneDrive/Documents/ArcGIS/Projects/GeoreferencingVIS/Nozay_hand_9.tif")
 
 nozay_image <- projectRaster(nozay_image,
-                             crs = crs(france_proj), quiet = T)
+                             crs = crs(france_proj))
 
 ggRGB(nozay_image, r=1,g=2,b=3, alpha = .5) 
-  coord_sf(crs = france_proj)
+
+```
+
+# Combining Handrawn Map with OSM Layers
+
+## Nozay Landuse
+
+The area around Nozay is rural and used largely as farmland and pastures for grazing animals such as cows and sheep. I like this map because it shows pockets of residential areas that, when comparing it to my knowledge of the area, usually consists of a couple of homes clustered together in a mini-village.
+
+```{r nozay landuse, message=F, warning=F, fig.height=10, fig.width=10, fig.align=.5}
+nozay_landuse <- nozay_landuse %>%
+  mutate(landuse2 = case_when(
+    landuse == "farmland" ~ "Farmland",
+    landuse == "farmyard" ~ "Farmland",
+    landuse == "grass" ~ "Meadow",
+    landuse == "meadow" ~ "Meadow",
+    landuse == "residential" ~ "Residential",
+    landuse == "retail" ~ "Retail",
+    landuse == "school" ~ "School",
+    landuse == "forest" ~ "Forest"))
 
 ggplot(nozay_streets) +
-  geom_sf(data = nozay_landuse, color = NA,
-          aes(fill = landuse)) +
-  ggRGB(nozay_image, r=1, g=2, b=3, ggLayer = T, alpha = .85, ) +
+  geom_sf(data = nozay_landuse, 
+          color = NA,
+          aes(fill = landuse2)) +
+  ggRGB(nozay_image, r=1, g=2, b=3, ggLayer = T, alpha = .78) +
   geom_sf(alpha = .1) +
   coord_sf(xlim = c(nozay_image@extent@xmin, nozay_image@extent@xmax),
            ylim = c(nozay_image@extent@ymin, nozay_image@extent@ymax)) +
-  scale_fill_viridis_d(name = "Landuse Type") +
-  annotation_north_arrow(location = "bl", style = north_arrow_fancy_orienteering()) +
+  scale_fill_manual(name = "Landuse Type", 
+                    aesthetics = "fill",
+                    values = c("lightgoldenrod1",
+                               "palegreen3",
+                               "springgreen1",
+                               "mediumpurple2",
+                               "firebrick1",
+                               "darkorchid4", NA)) +
+  annotation_north_arrow(location = "tr", style = north_arrow_fancy_orienteering()) +
   annotation_scale(location = "br") +
   annotate(geom = "text", x = 303450, y = -2800,
            label = "Grandma's Cottage",
@@ -118,7 +171,7 @@ ggplot(nozay_streets) +
            hjust = 0,
            color = "lightslateblue",
            size = 5) +  
-  annotate(geom = "text", x = 302100, y = -2950,
+  annotate(geom = "text", x = 302050, y = -2950,
            label = "Cow Field",
            fontface = "bold.italic",
            hjust = .65,
@@ -143,15 +196,143 @@ ggplot(nozay_streets) +
            color = "royalblue3", 
            size = 5) + 
   theme_map() +
-  theme(legend.background = element_rect(fill = alpha("white", .5), color = "grey"),
+  labs(title = "Landuse in Nozay, Pays de la Loire, France",
+       caption = "Features layers courtesy of OpenStreetMap contributors") +
+  theme(legend.background = element_rect(fill = alpha("white", .7), color = "grey"),
         legend.title = element_text(face = "bold"),
-        legend.position = "bottom")
+        legend.justification = c(0,-3.4),
+        title = element_text(face = "bold", size = 13), 
+        plot.title = element_text(hjust = 1)) 
 
 
 ```
 
+## Nozay Building Parcels
 
+This map shows the building parcels in and around Nozay. When I selected the building type to be the fill, it was too difficult to distinguish between them, so I chose instead one uniform, noticeable color to simply indicate where the concentration of buildings is. In Nozay proper there is the highest density, with buildings becoming fewer and more spread out after that. This makes me realize that the road network provided in OSM is quite good because I know that many of those roads are actually basically dirt paths, barely wide enough for a car.
 
+```{r parcels, message=F, warning=F, fig.height=10, fig.width=10, fig.align=.5}
+ggplot(nozay_streets) +
+  ggRGB(nozay_image, r=1, g=2, b=3, ggLayer = T, alpha = .85, ) +
+  geom_sf(data = nozay_building, color = NA, fill = "darkseagreen3") +
+  geom_sf(alpha = .1) +
+  coord_sf(xlim = c(nozay_image@extent@xmin, nozay_image@extent@xmax),
+           ylim = c(nozay_image@extent@ymin, nozay_image@extent@ymax)) +
+  annotation_north_arrow(location = "tr", style = north_arrow_fancy_orienteering()) +
+  annotation_scale(location = "br") +
+  annotate(geom = "text", x = 303450, y = -2800,
+           label = "Grandma's Cottage",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "deeppink",
+           size = 7) +
+  annotate(geom = "text", x = 303700, y = -2400,
+           label = "Upset the Dog's House",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "lightslateblue",
+           size = 5) +  
+  annotate(geom = "text", x = 302050, y = -2950,
+           label = "Cow Field",
+           fontface = "bold.italic",
+           hjust = .65,
+           color = "lightslateblue",
+           size = 5) +
+  annotate(geom = "text", x = 303800, y = -3500,
+           label = "Sunflower Field",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "lightslateblue",
+           size = 5) +  
+  annotate(geom = "text", x = 301800, y = -7200,
+           label = "Le Pierre Bleu",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "royalblue3", 
+           size = 5) + 
+  annotate(geom = "text", x = 301650, y = -6400,
+           label = "Super U",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "royalblue3", 
+           size = 5) + 
+  theme_map() +
+  labs(title = "Buildings in Nozay, Pays de la Loire, France",
+       caption = "Features layers courtesy of OpenStreetMap contributors") +
+  theme(legend.background = element_rect(fill = alpha("white", .5), color = "grey"),
+        legend.title = element_text(face = "bold"),
+        legend.justification = c(0,-1.4),
+        title = element_text(face = "bold", size = 13), 
+        plot.title = element_text(hjust = 1)) 
 
+```
 
+## Nozay Natural Features
+
+The map below shows the natural features in and around Nozay, as defined by OSM. This is interesting to me because it seems like there's a decent amount of forest-designated areas out there, which I don't think I've ever noticed. I think I get too distracted by the farmland and the cows to register the trees! 
+
+```{r natural features, message=F, warning=F, fig.height=10, fig.width=10, fig.align=.5}
+nozay_nature[44,4] <- "water"
+nozay_nature <- nozay_nature[which(is.na(nozay_nature$natural)==F),]
+
+ggplot(nozay_streets) +
+  ggRGB(nozay_image, r=1, g=2, b=3, ggLayer = T, alpha = .85, ) +
+  geom_sf(data = nozay_nature,  
+          aes(fill = natural, color = natural),
+          alpha = .7) +
+  geom_sf(alpha = .1) +
+  coord_sf(xlim = c(nozay_image@extent@xmin, nozay_image@extent@xmax),
+           ylim = c(nozay_image@extent@ymin, nozay_image@extent@ymax)) +
+  scale_fill_manual(name = "Natural Feature",
+                    aesthetics = c("fill", "color"), 
+                    values = c("palegreen","darkblue","springgreen4"),
+                    labels = c("Scrub","Water","Woods")) +
+  annotation_north_arrow(location = "tr", style = north_arrow_fancy_orienteering()) +
+  annotation_scale(location = "br") +
+  annotate(geom = "text", x = 303450, y = -2800,
+           label = "Grandma's Cottage",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "deeppink",
+           size = 7) +
+  annotate(geom = "text", x = 303700, y = -2400,
+           label = "Upset the Dog's House",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "lightslateblue",
+           size = 5) +  
+  annotate(geom = "text", x = 302050, y = -2950,
+           label = "Cow Field",
+           fontface = "bold.italic",
+           hjust = .65,
+           color = "lightslateblue",
+           size = 5) +
+  annotate(geom = "text", x = 303800, y = -3500,
+           label = "Sunflower Field",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "lightslateblue",
+           size = 5) +  
+  annotate(geom = "text", x = 301800, y = -7200,
+           label = "Le Pierre Bleu",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "royalblue3", 
+           size = 5) + 
+  annotate(geom = "text", x = 301650, y = -6400,
+           label = "Super U",
+           fontface = "bold.italic",
+           hjust = 0,
+           color = "royalblue3", 
+           size = 5) + 
+  theme_map() +
+  labs(title = "Natural Features in Nozay, Pays de la Loire, France",
+       caption = "Features layers courtesy of OpenStreetMap contributors") +
+  theme(legend.background = element_rect(fill = alpha("white", .5), color = "grey"),
+        legend.title = element_text(face = "bold"),
+        legend.justification = c(0,-7),
+        title = element_text(face = "bold", size = 13), 
+        plot.title = element_text(hjust = 1)) 
+
+```
 
