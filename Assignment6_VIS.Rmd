@@ -127,7 +127,7 @@ tract_map <- leaflet(south_boston) %>%
   addPolygons(fillColor = "hotpink", stroke = F,
               highlightOptions = highlightOptions(fillColor = "hotpink",
                                                   fillOpacity = .6),
-              label = ~describe) %>%
+              popup = ~describe) %>%
   addControl("Census Tracts in South Boston", position = "topright") 
 
 tract_map
