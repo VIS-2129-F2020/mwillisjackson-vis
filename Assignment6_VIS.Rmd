@@ -1,0 +1,113 @@
+---
+title: "Assignment6_VIS"
+author: "Megan Willis-Jackson"
+date: "10/21/2020"
+output: html_document
+---
+
+```{r load libraries, message=F, warning=F}
+library(tidyverse)
+library(sf)
+library(leaflet)
+library(htmltools)
+library(htmlwidgets)
+library(ggplot2)
+library(ggthemes)
+library(units)
+
+```
+
+
+```{r load data, message=F, warning=F}
+MA_state_plane <- "+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000.0001016002 +y_0=750000 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+
+leaflet_plane <- "+proj=longlat +datum=WGS84"
+
+mbta_bus_route <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/mbtabus/mbtabus/ARC", quiet = T) %>%
+  st_transform(crs = leaflet_plane)
+
+mbta_bus_stop <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/mbtabus/mbtabus/PT") %>%
+  st_transform(crs = leaflet_plane)
+
+mbta_train_route <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/mbta_rapid_transit/ARC") %>%
+  st_transform(crs = leaflet_plane)
+
+mbta_train_stop <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/mbta_rapid_transit/NODE") %>%
+  st_transform(crs = leaflet_plane)
+
+south_boston <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/SouthBoston_tract") %>%
+  st_transform(crs = leaflet_plane)
+
+
+```
+
+
+```{r making sure it all looks good in ggplot, message=F, warning=F}
+left_side <- st_bbox(south_boston)$xmin
+right_side <- st_bbox(south_boston)$xmax
+bottom_side <- st_bbox(south_boston)$ymin
+top_side <- st_bbox(south_boston)$ymax
+
+ggplot(south_boston) +
+  geom_sf(aes(fill = GEOID),
+          alpha = .5,
+          show.legend = F) +
+  geom_sf(data = mbta_bus_stop) +
+  geom_sf(data = mbta_train_stop, color = "red") +
+  geom_sf(data = mbta_train_route) +
+  coord_sf(xlim = c(left_side, right_side),
+           ylim = c(bottom_side, top_side), expand = F) +
+  scale_fill_viridis_d() +
+  theme_map()
+
+
+```
+
+```{r create summary variables, message=F, warning=F}
+south_boston_bus <- mbta_bus_stop[south_boston,]
+south_boston_train <- mbta_train_stop[south_boston,]
+
+south_boston <- south_boston %>%
+  mutate(num_bus = lengths(st_covers(south_boston, mbta_bus_stop)),
+         num_train = lengths(st_covers(south_boston, mbta_train_stop)),
+         num_stops = num_bus + num_train,
+         area = set_units(st_area(south_boston), m^2),
+         stop_density = as.numeric(num_stops / area))
+
+ggplot(south_boston) +
+  geom_sf(aes(fill=num_stops), color = NA) +
+  geom_sf(data = south_boston_bus) +
+  geom_sf(data = south_boston_train)
+
+```
+
+```{r using leaflet, message=F, warning=F}
+south_boston$describe <- paste(south_boston$NAMELSAD, "<br>",
+                               south_boston$num_stops, " bus/train stops", "<br>",
+                               prettyNum(south_boston$stop_density*5280, digits = 4), 
+                               "stops per square mile") %>%
+  lapply(htmltools::HTML)
+
+tract_map <- leaflet(south_boston) %>%
+  addProviderTiles(providers$Stamen.Terrain) %>%
+  addPolygons(fillColor = "hotpink", stroke = F,
+              highlightOptions = highlightOptions(fillColor = "hotpink",
+                                                  fillOpacity = .6),
+              label = ~describe) %>%
+  addControl("Census Tracts in South Boston", position = "topright")
+
+tract_map
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
