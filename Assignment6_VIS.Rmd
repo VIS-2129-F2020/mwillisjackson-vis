@@ -79,6 +79,18 @@ ggplot(south_boston) +
 
 ```
 
+```{r more data, message=F, warning=F}
+ma_wages_2018<- read.csv("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Studio 1/Exercise 2/Data/Wages2013and2018/ACSST5Y2018.S1901_data_with_overlays_2020-09-24T123247.csv", stringsAsFactors = T)
+
+ma_wages_2018$medianinc<- as.numeric(as.character(ma_wages_2018$S1901_C02_012E))
+
+south_boston <- left_join(south_boston, ma_wages_2018, by = "GEOID2")
+south_boston<- south_boston[,-c(23:149)]
+
+south_boston$medianinc <- replace_na(south_boston$medianinc, 0)
+
+```
+
 ```{r using leaflet, message=F, warning=F}
 south_boston$describe <- paste("<b>",
                                "<p style='color:Black;'>",
@@ -96,7 +108,18 @@ south_boston$describe <- paste("<b>",
                                       "<span style = 'color:Green;'>",
                                       "<span style = 'color:Red;'>"),
                                prettyNum(south_boston$stop_density*5280, digits = 2),"</b>",
-                               "stops per square mile","</span> </p>") %>%
+                               "stops per square mile","</span>",  
+                               "<br>", 
+                               "Median Income:","<b>",
+                               ifelse(south_boston$medianinc==0,
+                                      "<span style = 'color:Gray;'> Not Available",
+                                      ifelse(south_boston$medianinc >
+                                               mean(south_boston$medianinc),
+                                             "<span style = 'color:Green;'>",
+                                             "<span style = 'color:Red;'>")),
+                               "$",prettyNum(south_boston$medianinc, 
+                                             digits = 6, big.mark = ","),
+                               "</span></b></p>") %>%
   lapply(htmltools::HTML)
 
 tract_map <- leaflet(south_boston) %>%
@@ -108,6 +131,8 @@ tract_map <- leaflet(south_boston) %>%
   addControl("Census Tracts in South Boston", position = "topright") 
 
 tract_map
+
+saveWidget(tract_map, file = "mbta_stops_southie.html")
 
 ```
 
