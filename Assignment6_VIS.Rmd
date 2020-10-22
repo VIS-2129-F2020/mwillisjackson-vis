@@ -2,7 +2,8 @@
 title: "Assignment6_VIS"
 author: "Megan Willis-Jackson"
 date: "10/21/2020"
-output: html_document
+output:
+  html_document: default
 ---
 
 ```{r load libraries, message=F, warning=F}
@@ -40,30 +41,12 @@ south_boston <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fal
 ```
 
 
-```{r making sure it all looks good in ggplot, message=F, warning=F}
-left_side <- st_bbox(south_boston)$xmin
-right_side <- st_bbox(south_boston)$xmax
-bottom_side <- st_bbox(south_boston)$ymin
-top_side <- st_bbox(south_boston)$ymax
-
-ggplot(south_boston) +
-  geom_sf(aes(fill = GEOID),
-          alpha = .5,
-          show.legend = F) +
-  geom_sf(data = mbta_bus_stop) +
-  geom_sf(data = mbta_train_stop, color = "red") +
-  geom_sf(data = mbta_train_route) +
-  coord_sf(xlim = c(left_side, right_side),
-           ylim = c(bottom_side, top_side), expand = F) +
-  scale_fill_viridis_d() +
-  theme_map()
-
-
-```
-
 ```{r create summary variables, message=F, warning=F}
 south_boston_bus <- mbta_bus_stop[south_boston,]
 south_boston_train <- mbta_train_stop[south_boston,]
+south_boston_train_route <- mbta_train_route[south_boston,]
+mbta_bus_route_transformed <- st_zm(mbta_bus_route)
+south_boston_bus_route <- mbta_bus_route_transformed[south_boston,]
 
 south_boston <- south_boston %>%
   mutate(num_bus = lengths(st_covers(south_boston, mbta_bus_stop)),
@@ -73,9 +56,11 @@ south_boston <- south_boston %>%
          stop_density = as.numeric(num_stops / area))
 
 ggplot(south_boston) +
-  geom_sf(aes(fill=num_stops), color = NA) +
+  geom_sf(aes(fill=num_stops), color = NA, show.legend = F) +
   geom_sf(data = south_boston_bus) +
-  geom_sf(data = south_boston_train)
+  geom_sf(data = south_boston_train) +
+  theme_map()
+
 
 ```
 
@@ -83,9 +68,10 @@ ggplot(south_boston) +
 ma_wages_2018<- read.csv("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Studio 1/Exercise 2/Data/Wages2013and2018/ACSST5Y2018.S1901_data_with_overlays_2020-09-24T123247.csv", stringsAsFactors = T)
 
 ma_wages_2018$medianinc<- as.numeric(as.character(ma_wages_2018$S1901_C02_012E))
+ma_wages_2018$meaninc<- as.numeric(as.character(ma_wages_2018$S1901_C02_013E))
 
 south_boston <- left_join(south_boston, ma_wages_2018, by = "GEOID2")
-south_boston<- south_boston[,-c(23:149)]
+south_boston<- south_boston[,-c(24:149)]
 
 south_boston$medianinc <- replace_na(south_boston$medianinc, 0)
 
@@ -117,18 +103,71 @@ south_boston$describe <- paste("<b>",
                                                mean(south_boston$medianinc),
                                              "<span style = 'color:Green;'>",
                                              "<span style = 'color:Red;'>")),
-                               "$",prettyNum(south_boston$medianinc, 
-                                             digits = 6, big.mark = ","),
+                               ifelse(south_boston$medianinc == 0, "",
+                               "$"), ifelse(south_boston$medianinc == 0, "",
+                                 prettyNum(south_boston$medianinc, 
+                                             digits = 6, big.mark = ",")),
                                "</span></b></p>") %>%
   lapply(htmltools::HTML)
 
+south_boston_bus$describe <- paste("<b>", south_boston_bus$STOP_NAME, "</b>") %>%
+  lapply(htmltools::HTML)
+
+south_boston_train$describe <- paste("<b>", 
+                                     south_boston_train$STATION, 
+                                     "</b><br>", 
+                                     south_boston_train$LINE, "Line </b>") %>%
+  lapply(htmltools::HTML)
+
+south_boston_bus_route$describe <- paste("<b>", "Bus Route ",
+                                         south_boston_bus_route$MBTA_ROUTE,
+                                         " from ",
+                                         south_boston_bus_route$TRIP_HEADS, "</b>") %>%
+  lapply(htmltools::HTML)
+
 tract_map <- leaflet(south_boston) %>%
-  addProviderTiles(providers$Stamen.Terrain) %>%
-  addPolygons(fillColor = "hotpink", stroke = F,
-              highlightOptions = highlightOptions(fillColor = "hotpink",
-                                                  fillOpacity = .6),
+  addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
+  addPolygons(fillColor = "purple", fillOpacity = .15, stroke = F,
+              highlightOptions = highlightOptions(fillColor = "purple",
+                                                  fillOpacity = .4),
               popup = ~describe) %>%
-  addControl("Census Tracts in South Boston", position = "topright") 
+  addPolylines(data = south_boston_bus_route, stroke = T, 
+               color = "darkblue",
+               opacity = .7,
+               weight = 2.5,
+               highlightOptions = highlightOptions(color = "red",
+                                                   opacity = 1),
+               label = ~describe) %>%
+  addPolylines(data = south_boston_train_route, stroke = T,
+               color = "yellow",
+               weight = 2.5) %>%
+  addCircles(data = south_boston_bus,
+             stroke = F,
+             fillColor = "darkblue",
+             fillOpacity = .5,
+             radius = 40,
+             highlightOptions = highlightOptions(fillColor = "red",
+                                                 fillOpacity = 1),
+             popup = ~describe) %>%
+  addCircles(data = south_boston_train, 
+             stroke = F, 
+             fillColor = "yellow",
+             fillOpacity = .7,
+             radius = 40,
+             highlightOptions = highlightOptions(fillColor = "yellow",
+                                                 fillOpacity = 1),
+             popup = ~describe) %>%
+  addLegend(position = "bottomright", 
+            colors = c("darkblue","yellow","green","red"),
+            labels = c("MBTA Bus Stop/Route",
+                       "MBTA Train Station/Route",
+                       "Metric is Higher than South Boston Average",
+                       "Metric is Lower than South Boston Average")) %>%
+  addControl("Transit Access in South Boston", position = "topright") %>%
+  addScaleBar(position = "bottomleft") %>%
+  addControl('<a href="https://docs.digital.mass.gov/dataset/massgis-data-mbta-bus-routes-and-stops">Data source</a>',
+             position = "bottomleft") %>%
+  setView(lng = -71.037406, lat = 42.339542, zoom = 13)
 
 tract_map
 
