@@ -73,6 +73,7 @@ ma_wages_2018$meaninc<- as.numeric(as.character(ma_wages_2018$S1901_C02_013E))
 south_boston <- left_join(south_boston, ma_wages_2018, by = "GEOID2")
 south_boston<- south_boston[,-c(24:149)]
 
+south_boston$medianinc2 <- south_boston$medianinc
 south_boston$medianinc <- replace_na(south_boston$medianinc, 0)
 
 ```
@@ -100,7 +101,7 @@ south_boston$describe <- paste("<b>",
                                ifelse(south_boston$medianinc==0,
                                       "<span style = 'color:Gray;'> Not Available",
                                       ifelse(south_boston$medianinc >
-                                               mean(south_boston$medianinc),
+                                               mean(south_boston$medianinc2, na.rm = T),
                                              "<span style = 'color:Green;'>",
                                              "<span style = 'color:Red;'>")),
                                ifelse(south_boston$medianinc == 0, "",
@@ -135,7 +136,7 @@ tract_map <- leaflet(south_boston) %>%
                color = "darkblue",
                opacity = .7,
                weight = 2.5,
-               highlightOptions = highlightOptions(color = "red",
+               highlightOptions = highlightOptions(color = "turquoise",
                                                    opacity = 1),
                label = ~describe) %>%
   addPolylines(data = south_boston_train_route, stroke = T,
@@ -146,7 +147,7 @@ tract_map <- leaflet(south_boston) %>%
              fillColor = "darkblue",
              fillOpacity = .5,
              radius = 40,
-             highlightOptions = highlightOptions(fillColor = "red",
+             highlightOptions = highlightOptions(fillColor = "turquoise",
                                                  fillOpacity = 1),
              popup = ~describe) %>%
   addCircles(data = south_boston_train, 
@@ -157,12 +158,16 @@ tract_map <- leaflet(south_boston) %>%
              highlightOptions = highlightOptions(fillColor = "yellow",
                                                  fillOpacity = 1),
              popup = ~describe) %>%
+  addLegend(position = "bottomright",
+            colors = c("green","red"),
+            labels = c("Metric is Higher than South Boston Average",
+                       "Metric is Lower than South Boston Average"),
+            title = "Census Tract Pop-up Text") %>%
   addLegend(position = "bottomright", 
-            colors = c("darkblue","yellow","green","red"),
+            colors = c("darkblue","yellow"),
             labels = c("MBTA Bus Stop/Route",
-                       "MBTA Train Station/Route",
-                       "Metric is Higher than South Boston Average",
-                       "Metric is Lower than South Boston Average")) %>%
+                       "MBTA Train Station/Route"),
+            title = "MBTA Markers") %>%
   addControl("Transit Access in South Boston", position = "topright") %>%
   addScaleBar(position = "bottomleft") %>%
   addControl('<a href="https://docs.digital.mass.gov/dataset/massgis-data-mbta-bus-routes-and-stops">Data source</a>',
