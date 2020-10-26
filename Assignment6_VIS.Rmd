@@ -15,6 +15,8 @@ library(htmlwidgets)
 library(ggplot2)
 library(ggthemes)
 library(units)
+library(mapview)
+library(leafpop)
 
 ```
 
@@ -75,6 +77,19 @@ south_boston<- south_boston[,-c(24:149)]
 
 south_boston$medianinc2 <- south_boston$medianinc
 south_boston$medianinc <- replace_na(south_boston$medianinc, 0)
+
+```
+
+```{r load images}
+dat2 <- read.csv("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/bos_images.csv")
+
+images <- dat2$SourceFile
+
+leaflet(dat2) %>%
+addProviderTiles("Esri.WorldImagery") %>%
+addCircleMarkers(~ GPSLongitude, ~ GPSLatitude,
+           popup = popupImage(img = images, embed = T, src = "local"))
+
 
 ```
 
@@ -164,14 +179,21 @@ tract_map <- leaflet(south_boston) %>%
                        "Metric is Lower than South Boston Average"),
             title = "Census Tract Pop-up Text") %>%
   addLegend(position = "bottomright", 
-            colors = c("darkblue","yellow"),
+            colors = c("darkblue","yellow","hotpink"),
             labels = c("MBTA Bus Stop/Route",
-                       "MBTA Train Station/Route"),
-            title = "MBTA Markers") %>%
+                       "MBTA Train Station/Route",
+                       "Photo Locations"),
+            title = "Visible Markers") %>%
+  addCircleMarkers(data = dat2, ~ GPSLongitude, ~ GPSLatitude,
+           popup = popupImage(img = images, embed = T, src = "local"),
+           color = "hotpink",
+           fillColor = "hotpink") %>%
   addControl("Transit Access in South Boston", position = "topright") %>%
-  addScaleBar(position = "bottomleft") %>%
+    addControl('Photos taken by Chris Dsida 10/24/2020',
+             position = "bottomleft") %>%
   addControl('<a href="https://docs.digital.mass.gov/dataset/massgis-data-mbta-bus-routes-and-stops">Data source</a>',
              position = "bottomleft") %>%
+  addScaleBar(position = "bottomleft") %>%
   setView(lng = -71.037406, lat = 42.339542, zoom = 13)
 
 tract_map
