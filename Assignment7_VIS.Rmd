@@ -5,6 +5,7 @@ date: "11/2/2020"
 output: html_document
 ---
 
+# Load Libraries
 
 ```{r load libraries, message=F, warning=F}
 library(tidyverse)
@@ -16,10 +17,10 @@ library(raster)
 library(gstat)
 library(spatial)
 library(dplyr)
-library(wesanderson)
-
 
 ```
+
+# Import and Clean Data
 
 ```{r read data, message=F, warning=F}
 leaflet_plane <- "+proj=longlat +datum=WGS84"
@@ -39,20 +40,14 @@ streets <- st_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/cf
 south_boston <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/InteractiveMaps/SouthBoston_tract", quiet = T) %>%
   st_transform(crs = leaflet_plane)
 
-leaflet(south_boston) %>%
-  addProviderTiles(providers$Stamen.Toner) %>%
-  addPolygons() %>%
-  addPolylines(data = streets)
+south_boston_streets <- streets[south_boston,]
+
   
 ```
 
-```{r}
-south_boston_streets <- streets[south_boston,]
+# Chloropleth Map
 
-ggplot(south_boston_streets) +
-  geom_sf()
-
-```
+The data used for this assignment are counts from a traffic study performed on 11/21/2019 in South Boston, counting the number of vehicles (cars, heavy vehicles, and bikes) passing through a number of intersections during peak travel times. The peak travel times were 7:00 AM to 10:00 AM, 12:00 PM to 1:00 PM, and 4:30 PM to 6:00 PM. Because there were specific and limited intersections included in the study, there are some census tracts which contain no studied intersections. These tracts are colored grey/black in the chloropleth map below.
 
 ```{r polygon estimates, message=F, warning=F}
 south_boston_traffic <- st_join(south_boston, traffic2, join = st_intersects)
@@ -67,12 +62,8 @@ south_boston_traffic2$total <- ifelse(is.na(south_boston_traffic2$total_peak_tra
                                       traf_mean,
                                       south_boston_traffic2$total_peak_tract)
 
-south_boston_traffic2$describe <- paste("<p>",south_boston_traffic2$NAMELSAD,
-                                        "</p>Intersection:", 
-                                        str_to_title(
-                                          south_boston_traffic2$Associated.Streets),
-                                        "<br>",
-                                        "Vehicles during Peak Hours:",
+south_boston_traffic2$describe <- paste("<p><b>",south_boston_traffic2$NAMELSAD,
+                                        "</b></p><i>Vehicles during Peak Hours:</i>",
                                         prettyNum(south_boston_traffic2$total_peak_tract,
                                                   big.mark = ",")) %>%
   lapply(htmltools::HTML)
@@ -80,7 +71,7 @@ south_boston_traffic2$describe <- paste("<p>",south_boston_traffic2$NAMELSAD,
 bins <- seq(min(south_boston_traffic2$total_peak_tract, na.rm = T),
             max(south_boston_traffic2$total_peak_tract, na.rm = T), by = 1)
 pal <- colorNumeric(palette = c("#fee6ce", "#fdae6b", "#e6550d"), 
-                    domain = south_boston_traffic2$total_peak_tract)
+                    domain = south_boston_traffic2$total_peak_tract, na.color = "#000000")
 
 leaflet(south_boston_traffic2) %>%
   addProviderTiles(providers$Stamen.TonerLite) %>%
@@ -91,13 +82,14 @@ leaflet(south_boston_traffic2) %>%
               popup = ~describe) %>%
   addLegend(pal = pal,
             values = ~total,
-            title = "Total Vehicles",
+            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19",
             bins = 5,
             position = "topright")
 
   
 ```
 
+# Points Map
 
 ```{r points, message=F, warning=F}
 pal <- colorNumeric(palette = c("#f2f0f7",
@@ -127,7 +119,7 @@ leaflet(traffic2) %>%
             values = ~total_peak,
             bins = 5,
             position = "topright",
-            title = "Vehicles Counted during<br>Peak Hours 11/21/19")  
+            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19")  
   
   
 
@@ -135,6 +127,7 @@ leaflet(traffic2) %>%
 
 ```
 
+# Continuous Surface (interpolation) Map
 
 ```{r interpolation, message=F, warning=F}
 traffic_pts_sp <- traffic2 %>%
@@ -177,3 +170,16 @@ leaflet(traffic2) %>%
 
 
 ```
+
+# Conclusion
+
+The most informative of these three maps to me is the points map, which is essentially the format the original data is in. I do not think the chloropleth map is very useful for anything except indicating which census tracts had intersections that the researchers decided were important to study and which were not. This in itself might be an interesting finding, but because the chloropleth aggregates the data from the various intersections within it, it's misleading. Many of the vehicles counted at one studied intersection are very likely the same vehicles counted at a studied intersection right next to it, so the chloropleth map mainly lets us know how many studied intersections are included in a census tract, which is not useful information to have.
+
+I think the interpolation map may be the most informative of the three in terms of letting the reader know where the traffic is during peak hours. The fact that the colors of vehicle counts essentially join the intersection points together gives an indication of which roads are actually busy.
+
+
+
+
+
+
+
