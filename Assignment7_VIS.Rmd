@@ -2,7 +2,12 @@
 title: "Assignment7_VIS"
 author: "Megan Willis-Jackson"
 date: "11/2/2020"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+    
 ---
 
 # Load Libraries
@@ -84,7 +89,8 @@ leaflet(south_boston_traffic2) %>%
             values = ~total,
             title = "Total Vehicles Counted<br>Peak Hours on 11/21/19",
             bins = 5,
-            position = "topright")
+            position = "topright") %>%
+  setView(lng = -71.037406, lat = 42.339542, zoom = 13)
 
   
 ```
@@ -119,7 +125,8 @@ leaflet(traffic2) %>%
             values = ~total_peak,
             bins = 5,
             position = "topright",
-            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19")  
+            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19") %>%
+  setView(lng = -71.037406, lat = 42.339542, zoom = 13)
   
   
 
@@ -162,20 +169,17 @@ leaflet(traffic2) %>%
             values = ~total_peak,
             bins = 5,
             position = "topright",
-            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19")
-
-
-
-
-
+            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19") %>%
+  setView(lng = -71.037406, lat = 42.339542, zoom = 13)
 
 ```
 
 # Conclusion
 
-The most informative of these three maps to me is the points map, which is essentially the format the original data is in. I do not think the chloropleth map is very useful for anything except indicating which census tracts had intersections that the researchers decided were important to study and which were not. This in itself might be an interesting finding, but because the chloropleth aggregates the data from the various intersections within it, it's misleading. Many of the vehicles counted at one studied intersection are very likely the same vehicles counted at a studied intersection right next to it, so the chloropleth map mainly lets us know how many studied intersections are included in a census tract, which is not useful information to have.
+The most appropriate to the data of these three maps is the points map, which is essentially the format the original data is in and the only way you can be sure that the data you are looking at is accurate. I do not think the chloropleth map is very useful for anything except indicating which census tracts had intersections that the researchers decided were important to study and which were not. This in itself might be an interesting finding, but because the chloropleth aggregates the data from the various intersections within it, the totals are misleading. Many of the vehicles counted at one studied intersection are very likely the same vehicles counted at a studied intersection right next to it, so the chloropleth map mainly lets us know how many studied intersections are included in a census tract, which is not particularly useful information to have.
 
-I think the interpolation map may be the most informative of the three in terms of letting the reader know where the traffic is during peak hours. The fact that the colors of vehicle counts essentially join the intersection points together gives an indication of which roads are actually busy.
+I think the interpolation map may be the most informative of the three in terms of letting the reader know where the traffic is during peak hours. The fact that the colors of vehicle counts essentially join the intersection points together gives an indication of which roads are actually busy. It also makes it clear that the data we're looking at is relevant to the roads, as opposed to either the chloropleth or points map where the roads are not the main focus. I think the interpolation map is also the best map of the three for similar reasons; if a person is using this map to determine where the traffic in the neighborhood mostly is during peak times then this does a good job of doing that (with the normal reservations about the fact that interpolation is "fancy guessing"). 
+
 
 
 
