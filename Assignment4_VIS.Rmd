@@ -27,6 +27,8 @@ library(sp)
 library(stringr)
 library(rgeos)
 library(tidygeocoder)
+library(extrafont)
+loadfonts(device = "win")
 
 ```
 
@@ -118,30 +120,45 @@ otp_stop()
 
 The map below shows the isochrones for 5 minutes of walking and biking from each of the performance venues located in downtown New Orleans. Downtown New Orleans is here defined as any area of NOLA reachable within 10 minutes by car from the French Quarter, which may not align with the technical definition.
 
-```{r map isochrones, message=F}
+```{r map isochrones, message=F, fig.height=5, fig.width=5}
 
 right_side <- st_bbox(iso_nola_french)$xmax+1000
 left_side  <- st_bbox(iso_nola_french)$xmin+2000
 top_side <- st_bbox(iso_nola_french)$ymax-1000
 bottom_side <- st_bbox(iso_nola_french)$ymin+500
 
-ggplot(iso_all_modes) +
+nola_map <- ggplot(iso_all_modes) +
   geom_sf(data = nola_streets, color = "grey") +
-  geom_sf(aes(fill = mode), color = NA, alpha = 0.5) +
+  geom_sf(aes(fill = mode), color = NA, alpha = 0.7) +
   geom_sf(data = NOLA_performance) +
   coord_sf(xlim = c(left_side, right_side), 
            ylim = c(bottom_side, top_side), expand = FALSE) +
-  scale_fill_solarized(name = "Area that is reachable \nwithin 5 minutes",
-                       labels = c("By bike", "By foot")) +
+  scale_fill_manual(name = "Area that is reachable \nwithin 5 minutes",
+                       labels = c("By bike", "By foot"),
+                    values = c("darkslategray4","goldenrod1")) +
   annotation_north_arrow(location = "tl",
-                         style = north_arrow_fancy_orienteering(line_col = "black",fill = "black")) +
-  annotation_scale(location = "br", bar_cols = c("white","grey")) +
+                         style = north_arrow_fancy_orienteering(line_col = "black",
+                                                                fill = "goldenrod1")) +
+  annotation_scale(location = "br", bar_cols = c("darkslategray4", "goldenrod1"), text_cex = 1) +
   theme_map() +
   theme(legend.background = element_rect(fill = alpha("white",.5), color = "grey"),
-        legend.justification = c(-1.99,-.23),
+        legend.justification = c(-3,-.23),
         legend.title = element_text(face = "bold"),
-        legend.title.align = .5) +
-  labs(caption = "Basemap Copyright OpenStreetMap contributors")
+        legend.title.align = .5,
+        panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "#252525", colour = NA),
+        plot.caption = element_text(color = "grey", size = 17),
+        plot.title = element_text(color = "white", size = 25, hjust = .5),
+        text = element_text(family = "Trebuchet MS", size = 15)) +
+  labs(caption = "Basemap Copyright OpenStreetMap contributors",
+       title = "New Orleans Performance Venues")
+
+nola_map
+
+jpeg("Portfolio/nola_map.jpeg", bg = "#252525", width = 700, height = 700)
+nola_map
+dev.off()
+
 
 
 ```
@@ -183,7 +200,7 @@ total_area_walk<- st_as_sf(st_union(iso_5min_walk$geometry[iso_nola_french,]))
 ggplot(nola_streets) +
   geom_sf(data = total_area_bike, fill = "darkslategray4", color = NA) +
   geom_sf(color = "black", alpha = .5) +
-  geom_sf(data = total_area_walk, fill = "goldenrod1", alpha = .6, color = NA) +
+  geom_sf(data = total_area_walk, fill = "goldenrod1", alpha = 1, color = NA) +
   theme_map() +
   coord_sf(xlim = c(left_side, right_side), 
            ylim = c(bottom_side, top_side), expand = FALSE) +
@@ -211,7 +228,7 @@ area_temp<- c(total_area_walk_sum, total_area_bike_sum)
 total_area<- data.frame(mode_temp, as.numeric(substr(area_temp,1,8)))
 colnames(total_area)<- c("mode", "area")
 
-ggplot(total_area,
+nola_graph <- ggplot(total_area,
        aes(x = mode,
            y = area)) +
   geom_col(fill = c("goldenrod1", "darkslategray4")) +
@@ -221,13 +238,22 @@ ggplot(total_area,
   scale_x_discrete(name = "Mode",
                    labels = c("Biking","Walking")) +
   geom_text(label = paste(prettyNum(total_area$area, digits = 3),"sq km"), 
-            nudge_y = .4) +
+            nudge_y = .3, size = 8, family = "Trebuchet MS") +
   #scale_fill_discrete(aes(fill = c("darkslategray4","goldenrod1"))) +
-  labs(title = "Area Accessible Traveling Five Minutes from a\nPerformance Venue in Downtown New Orleans") +
+  labs(title = "Area Accessible Traveling Five Minutes from All\nPerformance Venues in Downtown New Orleans") +
   theme(legend.position = "none",
-        panel.background = element_rect(fill = "white"),
-        plot.title = element_text(hjust = .5), 
-        axis.ticks.x = element_blank()) 
+        panel.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "#252525", color = NA),
+        plot.title = element_text(hjust = .5, size = 25), 
+        axis.ticks.x = element_blank(),
+        text = element_text(family = "Trebuchet MS", size = 20, color = "white"),
+        axis.text = element_text(family = "Trebuchet MS", size = 18, color = "grey")) 
+
+nola_graph
+
+jpeg("Portfolio/nola_graph.jpeg", width = 700, height = 700, bg = "#252525")
+nola_graph
+dev.off()
 
 
 ```

@@ -2,8 +2,10 @@
 title: "Assignment5_VIS"
 author: "Megan Willis-Jackson"
 date: "10/18/2020"
-output: 
-  html_document: 
+output:
+  pdf_document:
+    toc: yes
+  html_document:
     toc: yes
     toc_float: yes
     theme: cerulean
@@ -33,6 +35,9 @@ library(raster)
 library(RStoolbox)
 library(rgdal)
 library(plyr)
+library(extrafont)
+loadfonts(device = "win")
+
 
 ```
 
@@ -114,7 +119,7 @@ nozay_nature <- st_as_sf(rbind.fill(nozay_nature_poly, nozay_nature_mpoly)) %>%
 I scanned my original map into ArcGIS in order to georeference it. Once complete, I imported it here to add additional layers.
 
 ```{r import image, message=FALSE, warning=FALSE, fig.align=.5}
-nozay_image <- stack("C:/Users/mwill/OneDrive/Documents/ArcGIS/Projects/GeoreferencingVIS/Nozay_hand_9.tif")
+nozay_image <- stack("C:/Users/mwill/OneDrive - Industrial Economics, Inc/Documents/ArcGIS/Projects/GeoreferencingVIS/Nozay_hand_9.tif")
 
 nozay_image <- projectRaster(nozay_image,
                              crs = crs(france_proj))
@@ -141,7 +146,7 @@ nozay_landuse <- nozay_landuse %>%
     landuse == "school" ~ "School",
     landuse == "forest" ~ "Forest"))
 
-ggplot(nozay_streets) +
+nozay_map <- ggplot(nozay_streets) +
   geom_sf(data = nozay_landuse, 
           color = NA,
           aes(fill = landuse2)) +
@@ -164,45 +169,62 @@ ggplot(nozay_streets) +
            fontface = "bold.italic",
            hjust = 0,
            color = "deeppink",
-           size = 7) +
+           size = 8,
+           family = "Trebuchet MS") +
   annotate(geom = "text", x = 303700, y = -2400,
            label = "Upset the Dog's House",
            fontface = "bold.italic",
            hjust = 0,
            color = "lightslateblue",
-           size = 5) +  
+           size = 6,
+           family = "Trebuchet MS") +  
   annotate(geom = "text", x = 302050, y = -2950,
            label = "Cow Field",
            fontface = "bold.italic",
            hjust = .65,
            color = "lightslateblue",
-           size = 5) +
+           size = 6,
+           family = "Trebuchet MS") +
   annotate(geom = "text", x = 303800, y = -3500,
            label = "Sunflower Field",
            fontface = "bold.italic",
            hjust = 0,
            color = "lightslateblue",
-           size = 5) +  
+           size = 6,
+           family = "Trebuchet MS") +  
   annotate(geom = "text", x = 301800, y = -7200,
            label = "Le Pierre Bleu",
            fontface = "bold.italic",
            hjust = 0,
            color = "royalblue3", 
-           size = 5) + 
+           size = 6,
+           family = "Trebuchet MS") + 
   annotate(geom = "text", x = 301650, y = -6400,
            label = "Super U",
            fontface = "bold.italic",
            hjust = 0,
            color = "royalblue3", 
-           size = 5) + 
+           size = 6,
+           family = "Trebuchet MS") + 
   theme_map() +
   labs(title = "Landuse in Nozay, Pays de la Loire, France",
        caption = "Features layers courtesy of OpenStreetMap contributors") +
   theme(legend.background = element_rect(fill = alpha("white", .7), color = "grey"),
-        legend.title = element_text(face = "bold"),
-        legend.justification = c(0,-3.4),
-        title = element_text(face = "bold", size = 13), 
-        plot.title = element_text(hjust = 1)) 
+        legend.title = element_text(face = "bold", color = "black"),
+        legend.text = element_text(family = "Trebuchet MS",size = 12),
+        legend.justification = c(0,-3),
+        title = element_text(face = "bold", size = 15, color = "white"),
+        plot.caption = element_text(color = "grey", size = 11),
+        plot.title = element_text(hjust = 1),
+        plot.background = element_rect(fill = "#252525", color = NA),
+        panel.background = element_rect(fill = "white", color = NA),
+        text = element_text(family = "Trebuchet MS")) 
+
+nozay_map
+
+jpeg("Portfolio/nozay_map.jpeg", bg = "#252525", width = 550, height = 700)
+nozay_map
+dev.off()
 
 
 ```

@@ -2,12 +2,13 @@
 title: "Assignment7_VIS"
 author: "Megan Willis-Jackson"
 date: "11/2/2020"
-output: 
-  html_document: 
+output:
+  pdf_document:
+    toc: yes
+  html_document:
     toc: yes
     toc_float: yes
     code_folding: hide
-    
 ---
 
 # Load Libraries
@@ -171,6 +172,21 @@ leaflet(traffic2) %>%
             position = "topright",
             title = "Total Vehicles Counted<br>Peak Hours on 11/21/19") %>%
   setView(lng = -71.037406, lat = 42.339542, zoom = 13)
+
+traffic_interpolation <- leaflet(traffic2) %>%
+  addProviderTiles(providers$Stamen.Toner) %>%
+  addRasterImage(idw_interp_clip, colors = pal, opacity = 0.9) %>%
+  addLegend(pal = pal,
+            values = ~total_peak,
+            bins = 5,
+            position = "topright",
+            title = "Total Vehicles Counted<br>Peak Hours on 11/21/19") %>%
+  setView(lng = -71.037406, lat = 42.339542, zoom = 13)
+
+saveWidget(traffic_interpolation, "C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Portfolio/traffic.html")
+
+
+
 
 ```
 
