@@ -1,0 +1,698 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Assignment1-VIS},
+  pdfauthor={Megan Willis-Jackson},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{Assignment1-VIS}
+\author{Megan Willis-Jackson}
+\date{9/16/2020}
+
+\begin{document}
+\maketitle
+
+\hypertarget{visualizing-relationships-and-distributions}{%
+\section{Visualizing Relationships and
+Distributions}\label{visualizing-relationships-and-distributions}}
+
+First I will load the libraries necessary to run the code that follows.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(tidycensus)}
+\KeywordTok{library}\NormalTok{(tidyverse)}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\end{Highlighting}
+\end{Shaded}
+
+Next, I will examine area- and person-level census variables to select
+those I would like to include in my dataset.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{area_vars_}\DecValTok{2018}\NormalTok{ <-}\StringTok{ }\KeywordTok{load_variables}\NormalTok{(}\DecValTok{2018}\NormalTok{,}\StringTok{"acs1"}\NormalTok{)}
+\NormalTok{person_vars_}\DecValTok{2018}\NormalTok{ <-}\StringTok{ }\NormalTok{pums_variables }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{distinct}\NormalTok{(year, survey, var_code, }
+\NormalTok{           var_label, data_type, level) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(level }\OperatorTok{==}\StringTok{ "person"}\NormalTok{, year }\OperatorTok{==}\StringTok{ }\DecValTok{2018}\NormalTok{, survey }\OperatorTok{==}\StringTok{ "acs1"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+I have decided that I will derive the below variables at the census
+tract level for Brooklyn, NY (Kings County). Some of them might seem
+repetitive, but I think they will allow for some more interesting and
+varied comparisons later on.
+
+\hypertarget{variables-to-be-derived-for-each-tract}{%
+\subsection{Variables to be Derived for Each
+Tract:}\label{variables-to-be-derived-for-each-tract}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Percent white (continuous)
+\item
+  Percent black (continuous)
+\item
+  Percent non-white (continuous)
+\item
+  Majority Non-White (categorical)
+\item
+  Median income (continuous)
+\item
+  Median age (continuous)
+\item
+  Country of ancestry most common in the tract (categorical)
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#select all variables to be used in an area-}
+\CommentTok{#level analysis}
+
+\NormalTok{race_vars<-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DataTypeTok{race_total =} \StringTok{"B02001_001"}\NormalTok{,}
+              \DataTypeTok{white =} \StringTok{"B02001_002"}\NormalTok{,}
+              \DataTypeTok{black =} \StringTok{"B02001_003"}\NormalTok{)}
+
+\NormalTok{ancestry_vars<-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DataTypeTok{Afghan =} \StringTok{"B04006_002"}\NormalTok{,}
+                   \DataTypeTok{Albanian =} \StringTok{"B04006_003"}\NormalTok{,}
+                   \DataTypeTok{Alsatian =} \StringTok{"B04006_004"}\NormalTok{,}
+                   \DataTypeTok{American =} \StringTok{"B04006_005"}\NormalTok{,}
+                   \DataTypeTok{Arab =} \StringTok{"B04006_006"}\NormalTok{,}
+                   \DataTypeTok{ArabEgyptian =} \StringTok{"B04006_007"}\NormalTok{,}
+                   \DataTypeTok{ArabIraqi =} \StringTok{"B04006_008"}\NormalTok{,}
+                   \DataTypeTok{ArabJordanian =} \StringTok{"B04006_009"}\NormalTok{,}
+                   \DataTypeTok{ArabLebanese =} \StringTok{"B04006_010"}\NormalTok{,}
+                   \DataTypeTok{ArabMoroccan =} \StringTok{"B04006_011"}\NormalTok{,}
+                   \DataTypeTok{ArabPalestinian =} \StringTok{"B04006_012"}\NormalTok{,}
+                   \DataTypeTok{ArabSyrian =} \StringTok{"B04006_013"}\NormalTok{,}
+                   \DataTypeTok{ArabArab =} \StringTok{"B04006_014"}\NormalTok{,}
+                   \DataTypeTok{ArabOtherArab =} \StringTok{"B04006_015"}\NormalTok{,}
+                   \DataTypeTok{Armenian =} \StringTok{"B04006_016"}\NormalTok{,}
+                   \DataTypeTok{AssyrianChaldeanSyriac =} \StringTok{"B04006_017"}\NormalTok{,}
+                   \DataTypeTok{Australian =} \StringTok{"B04006_018"}\NormalTok{,}
+                   \DataTypeTok{Austrian =} \StringTok{"B04006_019"}\NormalTok{,}
+                   \DataTypeTok{Basque =} \StringTok{"B04006_020"}\NormalTok{,}
+                   \DataTypeTok{Belgian =} \StringTok{"B04006_021"}\NormalTok{,}
+                   \DataTypeTok{Brazilian =} \StringTok{"B04006_022"}\NormalTok{,}
+                   \DataTypeTok{British =} \StringTok{"B04006_023"}\NormalTok{,}
+                   \DataTypeTok{Bulgarian =} \StringTok{"B04006_024"}\NormalTok{,}
+                   \DataTypeTok{Cajun =} \StringTok{"B04006_025"}\NormalTok{,}
+                   \DataTypeTok{Canadian =} \StringTok{"B04006_026"}\NormalTok{,}
+                   \DataTypeTok{CarpathoRusyn =} \StringTok{"B04006_027"}\NormalTok{,}
+                   \DataTypeTok{Celtic =} \StringTok{"B04006_028"}\NormalTok{,}
+                   \DataTypeTok{Croatian =} \StringTok{"B04006_029"}\NormalTok{,}
+                   \DataTypeTok{Cypriot =} \StringTok{"B04006_030"}\NormalTok{,}
+                   \DataTypeTok{Czech =} \StringTok{"B04006_031"}\NormalTok{,}
+                   \DataTypeTok{Czechoslovakian =} \StringTok{"B04006_032"}\NormalTok{,}
+                   \DataTypeTok{Danish =} \StringTok{"B04006_033"}\NormalTok{,}
+                   \DataTypeTok{Dutch =} \StringTok{"B04006_034"}\NormalTok{,}
+                   \DataTypeTok{EasternEuropean =} \StringTok{"B04006_035"}\NormalTok{,}
+                   \DataTypeTok{English =} \StringTok{"B04006_036"}\NormalTok{,}
+                   \DataTypeTok{Estonian =} \StringTok{"B04006_037"}\NormalTok{,}
+                   \DataTypeTok{European =} \StringTok{"B04006_038"}\NormalTok{,}
+                   \DataTypeTok{Finnish =} \StringTok{"B04006_039"}\NormalTok{,}
+                   \DataTypeTok{FrenchexceptBasque =} \StringTok{"B04006_040"}\NormalTok{,}
+                   \DataTypeTok{FrenchCanadian =} \StringTok{"B04006_041"}\NormalTok{,}
+                   \DataTypeTok{German =} \StringTok{"B04006_042"}\NormalTok{,}
+                   \DataTypeTok{GermanRussian =} \StringTok{"B04006_043"}\NormalTok{,}
+                   \DataTypeTok{Greek =} \StringTok{"B04006_044"}\NormalTok{,}
+                   \DataTypeTok{Guyanese =} \StringTok{"B04006_045"}\NormalTok{,}
+                   \DataTypeTok{Hungarian =} \StringTok{"B04006_046"}\NormalTok{,}
+                   \DataTypeTok{Icelander =} \StringTok{"B04006_047"}\NormalTok{,}
+                   \DataTypeTok{Iranian =} \StringTok{"B04006_048"}\NormalTok{,}
+                   \DataTypeTok{Irish =} \StringTok{"B04006_049"}\NormalTok{,}
+                   \DataTypeTok{Israeli =} \StringTok{"B04006_050"}\NormalTok{,}
+                   \DataTypeTok{Italian =} \StringTok{"B04006_051"}\NormalTok{,}
+                   \DataTypeTok{Latvian =} \StringTok{"B04006_052"}\NormalTok{,}
+                   \DataTypeTok{Lithuanian =} \StringTok{"B04006_053"}\NormalTok{,}
+                   \DataTypeTok{Luxembourger =} \StringTok{"B04006_054"}\NormalTok{,}
+                   \DataTypeTok{Macedonian =} \StringTok{"B04006_055"}\NormalTok{,}
+                   \DataTypeTok{Maltese =} \StringTok{"B04006_056"}\NormalTok{,}
+                   \DataTypeTok{NewZealander =} \StringTok{"B04006_057"}\NormalTok{,}
+                   \DataTypeTok{NorthernEuropean =} \StringTok{"B04006_058"}\NormalTok{,}
+                   \DataTypeTok{Norwegian =} \StringTok{"B04006_059"}\NormalTok{,}
+                   \DataTypeTok{PennsylvaniaGerman =} \StringTok{"B04006_060"}\NormalTok{,}
+                   \DataTypeTok{Polish =} \StringTok{"B04006_061"}\NormalTok{,}
+                   \DataTypeTok{Portuguese =} \StringTok{"B04006_062"}\NormalTok{,}
+                   \DataTypeTok{Romanian =} \StringTok{"B04006_063"}\NormalTok{,}
+                   \DataTypeTok{Russian =} \StringTok{"B04006_064"}\NormalTok{,}
+                   \DataTypeTok{Scandinavian =} \StringTok{"B04006_065"}\NormalTok{,}
+                   \DataTypeTok{Scotch_Irish =} \StringTok{"B04006_066"}\NormalTok{,}
+                   \DataTypeTok{Scottish =} \StringTok{"B04006_067"}\NormalTok{,}
+                   \DataTypeTok{Serbian =} \StringTok{"B04006_068"}\NormalTok{,}
+                   \DataTypeTok{Slavic =} \StringTok{"B04006_069"}\NormalTok{,}
+                   \DataTypeTok{Slovak =} \StringTok{"B04006_070"}\NormalTok{,}
+                   \DataTypeTok{Slovene =} \StringTok{"B04006_071"}\NormalTok{,}
+                   \DataTypeTok{SovietUnion =} \StringTok{"B04006_072"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfrican =} \StringTok{"B04006_073"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanCapeVerdean =} \StringTok{"B04006_074"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanEthiopian =} \StringTok{"B04006_075"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanGhanaian =} \StringTok{"B04006_076"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanKenyan =} \StringTok{"B04006_077"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanLiberian =} \StringTok{"B04006_078"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanNigerian =} \StringTok{"B04006_079"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanSenegalese =} \StringTok{"B04006_080"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanSierraLeonean =} \StringTok{"B04006_081"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanSomali =} \StringTok{"B04006_082"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanSouthAfrican =} \StringTok{"B04006_083"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanSudanese =} \StringTok{"B04006_084"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanUgandan =} \StringTok{"B04006_085"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanZimbabwean =} \StringTok{"B04006_086"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanAfrican =} \StringTok{"B04006_087"}\NormalTok{,}
+                   \DataTypeTok{SubsaharanAfricanOtherSubsaharanAfrican =} \StringTok{"B04006_088"}\NormalTok{,}
+                   \DataTypeTok{Swedish =} \StringTok{"B04006_089"}\NormalTok{,}
+                   \DataTypeTok{Swiss =} \StringTok{"B04006_090"}\NormalTok{,}
+                   \DataTypeTok{Turkish =} \StringTok{"B04006_091"}\NormalTok{,}
+                   \DataTypeTok{Ukrainian =} \StringTok{"B04006_092"}\NormalTok{,}
+                   \DataTypeTok{Welsh =} \StringTok{"B04006_093"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroups =} \StringTok{"B04006_094"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsBahamian =} \StringTok{"B04006_095"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsBarbadian =} \StringTok{"B04006_096"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsBelizean =} \StringTok{"B04006_097"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsBermudan =} \StringTok{"B04006_098"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsBritishWestIndian =} \StringTok{"B04006_099"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsDutchWestIndian =} \StringTok{"B04006_100"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsHaitian =} \StringTok{"B04006_101"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsJamaican =} \StringTok{"B04006_102"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsTrinidadianandTobagonian =} \StringTok{"B04006_103"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsU.S.VirginIslander =} \StringTok{"B04006_104"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsWestIndian =} \StringTok{"B04006_105"}\NormalTok{,}
+                   \DataTypeTok{WestIndianexceptHispanicgroupsOtherWestIndian =} \StringTok{"B04006_106"}\NormalTok{,}
+                   \DataTypeTok{Yugoslavian =} \StringTok{"B04006_107"}\NormalTok{)}
+                   \CommentTok{#Othergroups = "B04006_108",}
+                   \CommentTok{#Unclassifiedornotreported = "B04006_109")}
+\end{Highlighting}
+\end{Shaded}
+
+I exclude ``Other groups'' and ``Unclassified or not reported''
+responses from this analysis simply because I would like to have more
+specificity in the charts. Ideally, I would code the count of each
+individual ancestry country and present those distributions, but that is
+likely something more easily done at the county level instead of
+comparing across tracts, particularly with the scope of this assignment.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{income_var<-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DataTypeTok{median_income =} \StringTok{"B06011_001"}\NormalTok{)}
+
+\NormalTok{age_var<-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DataTypeTok{median_age =} \StringTok{"B01002_001"}\NormalTok{)}
+
+
+\NormalTok{income_data<-}\StringTok{ }\KeywordTok{get_acs}\NormalTok{(}\DataTypeTok{geography =} \StringTok{"tract"}\NormalTok{,}
+                   \DataTypeTok{variables =}\NormalTok{ income_var,}
+                   \DataTypeTok{output =} \StringTok{"wide"}\NormalTok{,}
+                   \DataTypeTok{state =} \StringTok{"NY"}\NormalTok{,}
+                   \DataTypeTok{county =} \StringTok{"Kings"}\NormalTok{,}
+                   \DataTypeTok{year =} \DecValTok{2018}\NormalTok{)}
+\NormalTok{age_data<-}\StringTok{ }\KeywordTok{get_acs}\NormalTok{(}\DataTypeTok{geography =} \StringTok{"tract"}\NormalTok{,}
+                   \DataTypeTok{variables =}\NormalTok{ age_var,}
+                   \DataTypeTok{output =} \StringTok{"wide"}\NormalTok{,}
+                   \DataTypeTok{state =} \StringTok{"NY"}\NormalTok{,}
+                   \DataTypeTok{county =} \StringTok{"Kings"}\NormalTok{,}
+                   \DataTypeTok{year =} \DecValTok{2018}\NormalTok{)}
+\NormalTok{race_data<-}\StringTok{ }\KeywordTok{get_acs}\NormalTok{(}\DataTypeTok{geography =} \StringTok{"tract"}\NormalTok{, }
+                    \DataTypeTok{variables =}\NormalTok{ race_vars,}
+                    \DataTypeTok{output =} \StringTok{"wide"}\NormalTok{,}
+                    \DataTypeTok{state =} \StringTok{"NY"}\NormalTok{, }
+                    \DataTypeTok{county =} \StringTok{"Kings"}\NormalTok{, }
+                    \DataTypeTok{year =} \DecValTok{2018}\NormalTok{)}
+
+\NormalTok{ancestry_type_data<-}\StringTok{ }\KeywordTok{get_acs}\NormalTok{(}\DataTypeTok{geography =} \StringTok{"tract"}\NormalTok{,}
+                             \DataTypeTok{variables =}\NormalTok{ ancestry_vars,}
+                             \DataTypeTok{state =} \StringTok{"NY"}\NormalTok{,}
+                             \DataTypeTok{county =} \StringTok{"Kings"}\NormalTok{,}
+                             \DataTypeTok{year =} \DecValTok{2018}\NormalTok{)}
+  
+\CommentTok{#sort the ancestry country data first by tract (GEOID), then by the highest population reporting}
+\NormalTok{ancestry_type_data<-}\StringTok{ }\NormalTok{ancestry_type_data[}\KeywordTok{order}\NormalTok{(ancestry_type_data[,}\DecValTok{1}\NormalTok{],}\OperatorTok{-}\NormalTok{ancestry_type_data[,}\DecValTok{4}\NormalTok{]),]}
+
+\CommentTok{#select the highest reported ancestry country population for each tract}
+\NormalTok{maj_ancestry<-}\StringTok{   }\NormalTok{ancestry_type_data }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(GEOID) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}\DataTypeTok{maj_anc_pop =} \KeywordTok{max}\NormalTok{(estimate),}\DataTypeTok{maj_anc_type =} \KeywordTok{first}\NormalTok{(variable)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(GEOID, maj_anc_pop, maj_anc_type)}
+
+\CommentTok{#combine variables into one dataset}
+\NormalTok{kings_data<-}\StringTok{ }\KeywordTok{inner_join}\NormalTok{(race_data, age_data, }\DataTypeTok{by =} \StringTok{"GEOID"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{pct_white =}\NormalTok{ whiteE }\OperatorTok{/}\StringTok{ }\NormalTok{race_totalE,}
+         \DataTypeTok{pct_black =}\NormalTok{ blackE }\OperatorTok{/}\StringTok{ }\NormalTok{race_totalE,}
+         \DataTypeTok{pct_not_white =}\NormalTok{ (race_totalE }\OperatorTok{-}\StringTok{ }\NormalTok{whiteE) }\OperatorTok{/}\StringTok{ }\NormalTok{race_totalE,}
+         \DataTypeTok{majority_not_white =}\NormalTok{ pct_not_white }\OperatorTok{>}\StringTok{ }\FloatTok{.5}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(GEOID, pct_white, pct_black, pct_not_white, majority_not_white, median_ageE)}
+
+\NormalTok{kings_data<-}\StringTok{ }\KeywordTok{inner_join}\NormalTok{(kings_data, income_data, }\DataTypeTok{by =} \StringTok{"GEOID"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(GEOID, pct_white, pct_black, pct_not_white, majority_not_white, median_ageE, median_incomeE)}
+
+\NormalTok{kings_data<-}\StringTok{ }\KeywordTok{inner_join}\NormalTok{(kings_data, maj_ancestry, }\DataTypeTok{by =} \StringTok{"GEOID"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{#group ancestry types more generally}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{maj_anc_group =} \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Russian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Polish"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Hungarian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "EasternEuropean"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Ukrainian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Turkish"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Serbian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "European"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Arab"} \OperatorTok{~}\StringTok{ "Middle East"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Afghan"} \OperatorTok{~}\StringTok{ "Middle East"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Norwegian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Guyanese"} \OperatorTok{~}\StringTok{ "South America"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Italian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Greek"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "SubsaharanAfrican"} \OperatorTok{~}\StringTok{ "Sub-Saharan Africa"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "American"} \OperatorTok{~}\StringTok{ "United States"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "WestIndianexceptHispanicgroups"} \OperatorTok{~}\StringTok{ "West Indies"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "German"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Irish"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "English"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{,}
+\NormalTok{    maj_anc_type }\OperatorTok{==}\StringTok{ "Belgian"} \OperatorTok{~}\StringTok{ "Europe"}\NormalTok{)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(GEOID, pct_white, pct_black, pct_not_white, majority_not_white, median_ageE, median_incomeE, maj_anc_type, maj_anc_group)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{save-file-as-csv}{%
+\paragraph{Save File as CSV}\label{save-file-as-csv}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_csv}\NormalTok{(kings_data,}\StringTok{"king_county.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{visualize-the-data}{%
+\subsection{Visualize the Data}\label{visualize-the-data}}
+
+\hypertarget{graph-1}{%
+\subsubsection{Graph 1}\label{graph-1}}
+
+The colors here probably aren't very helpful, as it only really adds
+additional information for the Europe category, and even then it's hard
+to make out the fine details.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{attach}\NormalTok{(kings_data)}
+
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ maj_anc_group,}
+           \DataTypeTok{y =}\NormalTok{ pct_white,}
+           \DataTypeTok{color =}\NormalTok{ maj_anc_type)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Percent of Tract that is White"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{, }\DataTypeTok{by =} \FloatTok{.25}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"0%"}\NormalTok{,}\StringTok{"25%"}\NormalTok{,}\StringTok{"50%"}\NormalTok{,}\StringTok{"75%"}\NormalTok{,}\StringTok{"100%"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major}\CharTok{\textbackslash{}n}\StringTok{ Ancestral}\CharTok{\textbackslash{}n}\StringTok{ Country of}\CharTok{\textbackslash{}n}\StringTok{ Tract"}\NormalTok{, ) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{, }\DataTypeTok{legend.title.align =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/data visualizations-1.pdf}
+
+\hypertarget{graph-2}{%
+\subsubsection{Graph 2}\label{graph-2}}
+
+I try a pretty standard pie chart below.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \DecValTok{1}\NormalTok{, }\DataTypeTok{fill =}\NormalTok{ maj_anc_group)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_bar}\NormalTok{(}\DataTypeTok{position =} \StringTok{"fill"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{coord_polar}\NormalTok{(}\DataTypeTok{theta =} \StringTok{"y"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Number of tracts"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_fill_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Majority Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_void}\NormalTok{() }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-1-1.pdf}
+
+\hypertarget{graph-3}{%
+\subsubsection{Graph 3}\label{graph-3}}
+
+This is not a graph I would ever include in a report or any official
+communications. There are far too many variables for it to be useful or
+even particularly legible. However, I do think it's fun to play around
+with visualizations like this, so I'm going for it!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ median_incomeE,}
+           \DataTypeTok{y =}\NormalTok{ median_ageE,}
+           \DataTypeTok{size =}\NormalTok{ pct_white,}
+           \DataTypeTok{shape =}\NormalTok{ maj_anc_group,}
+           \DataTypeTok{color =}\NormalTok{ maj_anc_type)}
+\NormalTok{       ) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"right"}\NormalTok{, }\DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{8}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income by Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{100000}\NormalTok{, }\DataTypeTok{by =} \DecValTok{20000}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"$0"}\NormalTok{, }\StringTok{"$20k"}\NormalTok{, }\StringTok{"$40k"}\NormalTok{, }\StringTok{"$60k"}\NormalTok{, }\StringTok{"$80k"}\NormalTok{, }\StringTok{"$100k"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Age by Tract"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_shape_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Region of Tract"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Country of Tract"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_size_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Percent of Tract Population that is White"}\NormalTok{,}
+                        \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.0}\NormalTok{, }\FloatTok{.25}\NormalTok{, }\FloatTok{.5}\NormalTok{, }\FloatTok{.75}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+                        \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"0%"}\NormalTok{, }\StringTok{"25%"}\NormalTok{, }\StringTok{"50%"}\NormalTok{, }\StringTok{"75%"}\NormalTok{, }\StringTok{"100%"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{8}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+\hypertarget{graph-4}{%
+\subsubsection{Graph 4}\label{graph-4}}
+
+The following two graphs are very similar so I am counting them as the
+same. The only difference is inclusion of color, which I think adds
+clarity to it in some ways but detracts in others. For example, the
+color demonstrates which tracts with certain ancestral countries are the
+only ones to make higher than a certain median income. The one without
+color, however, better shows that the most variance is seen in tracts
+where the median age is between about 30 and 45 years.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ median_ageE,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE,}
+           \DataTypeTok{color =}\NormalTok{ maj_anc_group)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_area}\NormalTok{(}\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Age of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income of Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1000000}\NormalTok{, }\DataTypeTok{by =} \DecValTok{250000}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 12 rows containing missing values (position_stack).
+\end{verbatim}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ median_ageE,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_area}\NormalTok{(}\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Age of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income of Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1000000}\NormalTok{, }\DataTypeTok{by =} \DecValTok{250000}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 12 rows containing missing values (position_stack).
+\end{verbatim}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-3-2.pdf}
+
+\hypertarget{graph-5}{%
+\subsubsection{Graph 5}\label{graph-5}}
+
+The point graph below shows the relationship between the percentage of a
+tract in Kings County that is not white and that tract's median income.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ pct_not_white,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{alpha =} \DecValTok{1}\NormalTok{, }\DataTypeTok{size =} \FloatTok{0.5}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{stat_smooth}\NormalTok{(}\DataTypeTok{color =} \StringTok{"red"}\NormalTok{, }\DataTypeTok{linetype =} \DecValTok{4}\NormalTok{, }\DataTypeTok{size =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Percent of Tract that is Non-White"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,.}\DecValTok{1}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"0%"}\NormalTok{,}\StringTok{"10%"}\NormalTok{,}\StringTok{"20%"}\NormalTok{,}\StringTok{"30%"}\NormalTok{,}\StringTok{"40%"}\NormalTok{,}\StringTok{"50%"}\NormalTok{,}\StringTok{"60%"}\NormalTok{,}\StringTok{"70%"}\NormalTok{,}\StringTok{"80%"}\NormalTok{,}\StringTok{"90%"}\NormalTok{,}\StringTok{"100%"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{100000}\NormalTok{,}\DataTypeTok{by =} \DecValTok{20000}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"$0"}\NormalTok{,}\StringTok{"$20k"}\NormalTok{,}\StringTok{"$40k"}\NormalTok{,}\StringTok{"$60k"}\NormalTok{,}\StringTok{"$80k"}\NormalTok{,}\StringTok{"$100k"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{12}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 12 rows containing non-finite values (stat_smooth).
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Removed 12 rows containing missing values (geom_point).
+\end{verbatim}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+\hypertarget{graph-6}{%
+\subsubsection{Graph 6}\label{graph-6}}
+
+This is a stacked bar chart, grouping each of the Brooklyn tracts by
+majority ancestral region, and then within that, breaking out the
+specific ancestral country.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ maj_anc_group, }\DataTypeTok{fill =}\NormalTok{ maj_anc_type)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_bar}\NormalTok{(}\DataTypeTok{width =} \FloatTok{.75}\NormalTok{, }\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Majority Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Count of Tracts"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{, }\DataTypeTok{legend.title.align =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_fill_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Majority}\CharTok{\textbackslash{}n}\StringTok{ Ancestral}\CharTok{\textbackslash{}n}\StringTok{ Country}\CharTok{\textbackslash{}n}\StringTok{ of Tract"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\hypertarget{graph-7}{%
+\subsubsection{Graph 7}\label{graph-7}}
+
+This scatter plot also may have a bit too much on it to be truly
+helpful. A more useful graph would probably remove the shape
+distinctions and make the colors ancestral regions as opposed to
+ancestral countries so that the distinctions are easier to see. Here,
+though, the chart suggests that in Brooklyn, it is mostly tracts with
+residents that are largely of European descent (specifically Irish and
+Italian) that even have median incomes over about \$60k.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data, }
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ pct_white,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE,}
+           \DataTypeTok{color =}\NormalTok{ maj_anc_type,}
+           \DataTypeTok{shape =}\NormalTok{ maj_anc_group}
+\NormalTok{            )) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Percent of Tract Population that is White"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.0}\NormalTok{, }\FloatTok{.25}\NormalTok{, }\FloatTok{.5}\NormalTok{, }\FloatTok{.75}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"0%"}\NormalTok{, }\StringTok{"25%"}\NormalTok{, }\StringTok{"50%"}\NormalTok{, }\StringTok{"75%"}\NormalTok{, }\StringTok{"100%"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income by Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\DecValTok{25000}\NormalTok{,}\DecValTok{50000}\NormalTok{,}\DecValTok{75000}\NormalTok{,}\DecValTok{100000}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"$25,000"}\NormalTok{,}\StringTok{"$50,000"}\NormalTok{,}\StringTok{"$75,000"}\NormalTok{,}\StringTok{"$100,000"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_shape_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Country of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.key.size =} \KeywordTok{unit}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\StringTok{"cm"}\NormalTok{), }
+        \DataTypeTok{legend.position =} \StringTok{"right"}\NormalTok{,}
+        \DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{8}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+\hypertarget{graph-8}{%
+\subsubsection{Graph 8}\label{graph-8}}
+
+I both like and dislike this graph. I would never use it in a report,
+but it's also a bit intriguing to look at. I think it also does a decent
+job at illustrating what Graph 7 suggests: census tracts with residents
+of West Indies descent tend to make less that those of European descent.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data, }
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ pct_white,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE,}
+           \DataTypeTok{color =}\NormalTok{ maj_anc_group,}
+\NormalTok{            )) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_polygon}\NormalTok{(}\DataTypeTok{rule =} \StringTok{"winding"}\NormalTok{, }\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Percent of Tract Population that is White"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.0}\NormalTok{, }\FloatTok{.25}\NormalTok{, }\FloatTok{.5}\NormalTok{, }\FloatTok{.75}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"0%"}\NormalTok{, }\StringTok{"25%"}\NormalTok{, }\StringTok{"50%"}\NormalTok{, }\StringTok{"75%"}\NormalTok{, }\StringTok{"100%"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income by Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\DecValTok{25000}\NormalTok{,}\DecValTok{50000}\NormalTok{,}\DecValTok{75000}\NormalTok{,}\DecValTok{100000}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"$25,000"}\NormalTok{,}\StringTok{"$50,000"}\NormalTok{,}\StringTok{"$75,000"}\NormalTok{,}\StringTok{"$100,000"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_shape_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major Ancestral Country of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.key.size =} \KeywordTok{unit}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\StringTok{"cm"}\NormalTok{),}
+        \DataTypeTok{line =} \KeywordTok{element_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{5}\NormalTok{),}
+        \DataTypeTok{legend.position =} \StringTok{"right"}\NormalTok{,}
+        \DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{10}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\hypertarget{graph-9}{%
+\subsubsection{Graph 9}\label{graph-9}}
+
+This is several boxplots. Because the European region is the only region
+included which has more than one country within it, that's the one that
+is broken into several mini boxplots. I like this one because it shows
+that tracts with residents largely of European descent really have a
+large range of median incomes compared to tracts with residents of other
+descent.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data, }
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ maj_anc_group,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE,}
+           \DataTypeTok{color =}\NormalTok{ maj_anc_type,}
+\NormalTok{            )) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Majority Ancestral Region of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income by Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\DecValTok{25000}\NormalTok{,}\DecValTok{50000}\NormalTok{,}\DecValTok{75000}\NormalTok{,}\DecValTok{100000}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"$25,000"}\NormalTok{,}\StringTok{"$50,000"}\NormalTok{,}\StringTok{"$75,000"}\NormalTok{,}\StringTok{"$100,000"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_discrete}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Major}\CharTok{\textbackslash{}n}\StringTok{ Ancestral}\CharTok{\textbackslash{}n}\StringTok{ Country}\CharTok{\textbackslash{}n}\StringTok{ of Tract"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.key.size =} \KeywordTok{unit}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\StringTok{"cm"}\NormalTok{),}
+        \DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{12}\NormalTok{),}
+        \DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{-45}\NormalTok{, }\DataTypeTok{hjust =} \DecValTok{0}\NormalTok{),}
+        \DataTypeTok{legend.title.align =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\hypertarget{graph-10}{%
+\subsubsection{Graph 10}\label{graph-10}}
+
+I like the simplicity of this scatter plot. It's easy to interpret and
+doesn't have too much going on that will distract the reader.
+Oldie-but-goodie.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(kings_data,}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ median_ageE,}
+           \DataTypeTok{y =}\NormalTok{ median_incomeE,}
+           \DataTypeTok{color =}\NormalTok{ pct_not_white)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{show.legend =}\NormalTok{ T, }\DataTypeTok{na.rm =}\NormalTok{ T) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}
+        \DataTypeTok{legend.key.size =} \KeywordTok{unit}\NormalTok{(}\DecValTok{1}\NormalTok{,}\StringTok{"cm"}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Income by Tract"}\NormalTok{,}
+                     \DataTypeTok{breaks =} \KeywordTok{c}\NormalTok{(}\DecValTok{25000}\NormalTok{,}\DecValTok{50000}\NormalTok{,}\DecValTok{75000}\NormalTok{,}\DecValTok{100000}\NormalTok{),}
+                     \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"$25,000"}\NormalTok{,}\StringTok{"$50,000"}\NormalTok{,}\StringTok{"$75,000"}\NormalTok{,}\StringTok{"$100,000"}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Median Age by Tract"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_color_continuous}\NormalTok{(}\DataTypeTok{name =} \StringTok{"Proportion of Tract Population that is Non-White"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment1_VIS_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+```
+
+\end{document}

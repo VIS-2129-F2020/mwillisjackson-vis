@@ -2,7 +2,9 @@
 title: "Assignment1-VIS"
 author: "Megan Willis-Jackson"
 date: "9/16/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # Visualizing Relationships and Distributions
@@ -12,6 +14,12 @@ First I will load the libraries necessary to run the code that follows.
 library(tidycensus)
 library(tidyverse)
 library(ggplot2)
+library(tidyverse)
+library(sf)
+library(ggthemes)
+library(ggspatial)
+library(extrafont)
+loadfonts(device = "win")
 ```
 
 Next, I will examine area- and person-level census variables to select those I would like to include in my dataset.
@@ -21,6 +29,9 @@ person_vars_2018 <- pums_variables %>%
   distinct(year, survey, var_code, 
            var_label, data_type, level) %>%
   filter(level == "person", year == 2018, survey == "acs1")
+
+ny_shapefile <- st_read("C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/tl_2019_36_tract", quiet = T) 
+ # mutate(GEOID = as.numeric(as.character(GEOID)))
 ```
 
 I have decided that I will derive the below variables at the census tract level for
@@ -150,7 +161,7 @@ ancestry_vars<- c(Afghan = "B04006_002",
                    WestIndianexceptHispanicgroupsWestIndian = "B04006_105",
                    WestIndianexceptHispanicgroupsOtherWestIndian = "B04006_106",
                    Yugoslavian = "B04006_107")
-                   #Othergroups = "B04006_108",
+                  # Othergroups = "B04006_108",
                    #Unclassifiedornotreported = "B04006_109")
 ```
 
@@ -370,14 +381,34 @@ ggplot(kings_data,
 
 This is a stacked bar chart, grouping each of the Brooklyn tracts by majority ancestral region, and then within that, breaking out the specific ancestral country.
 
-```{r, message=FALSE}
-ggplot(kings_data,
+```{r, message=FALSE, fig.height=5, fig.width=10}
+brook_bar <- ggplot(kings_data,
        aes(x = maj_anc_group, fill = maj_anc_type)) +
   geom_bar(width = .75, na.rm = T) +
   scale_x_discrete(name = "Majority Ancestral Region of Tract") +
   scale_y_continuous(name = "Count of Tracts") +
-  theme(legend.position = "bottom", legend.title.align = 1) +
-  scale_fill_discrete(name = "Majority\n Ancestral\n Country\n of Tract")
+  theme(legend.position = "bottom", legend.title.align = 1, 
+        legend.background = element_rect(fill = "#252525"),
+        text = element_text(family = "Trebuchet MS", size = 20, color = "white"),
+        axis.text = element_text(color = "grey"),
+        plot.title = element_text(size = 25),
+        plot.background = element_rect(fill = "#252525"),
+        panel.background = element_rect(color = NA, fill = "grey70"),
+        legend.key = element_rect(fill = NA)) +
+  scale_fill_viridis_d(name = "Majority\n Ancestral\n Country\n of Tract",
+                       labels = c("Afghan","American","Arab","Belgian",
+                                  "Eastern European", "English","European (not specified)",
+                                  "German","Greek","Guyanese","Hungarian","Irish","Italian",
+                                  "Norwegian","Polish","Russian","Serbian",
+                                  "Subsaharan African (not specified)",
+                                  "Turkish","Ukranian","West Indian\n(non-Hispanic)"))
+
+brook_bar
+
+jpeg("Portfolio/brooklyn_barchart.jpeg", height = 500, width = 1200, bg = "#252525")
+brook_bar
+dev.off()
+
 ```
 
 ### Graph 7
@@ -410,7 +441,7 @@ ggplot(kings_data,
 I both like and dislike this graph. I would never use it in a report, but it's also a bit intriguing to look at. I think it also does a decent job at illustrating what Graph 7 suggests: census tracts with residents of West Indies descent tend to make less that those of European descent.
 
 ```{r, message=FALSE}
-ggplot(kings_data, 
+brook_art <- ggplot(kings_data, 
        aes(x = pct_white,
            y = median_incomeE,
            color = maj_anc_group,
@@ -424,10 +455,21 @@ ggplot(kings_data,
                      labels = c("$25,000","$50,000","$75,000","$100,000")) +
   scale_shape_discrete(name = "Major Ancestral Region of Tract") +
   scale_color_discrete(name = "Major Ancestral Country of Tract") +
-  theme(legend.key.size = unit(0.5, "cm"),
+  theme(legend.key.size = unit(0.5, "cm"), legend.key = element_rect(fill = "#252525"),
         line = element_line(size = 5),
         legend.position = "right",
-        text = element_text(size = 10))
+        text = element_text(size = 20, family = "Trebuchet MS", color = "white"),
+        plot.background = element_rect(fill = "#252525"),
+        legend.background = element_rect(fill = "#252525"),
+        axis.text = element_text(color = "grey"))
+
+jpeg("Portfolio/brooklyn_art.jpeg", bg = "#252525", height = 500, width = 1000)
+brook_art
+dev.off()
+
+
+
+
 ```
 
 ### Graph 9
@@ -448,7 +490,7 @@ ggplot(kings_data,
                      labels = c("$25,000","$50,000","$75,000","$100,000")) +
   scale_color_discrete(name = "Major\n Ancestral\n Country\n of Tract") +
   theme(legend.key.size = unit(0.1, "cm"),
-        text = element_text(size = 12),
+        text = element_text(size = 12, family = "Trebuchet MS"),
         axis.text.x = element_text(angle = -45, hjust = 0),
         legend.title.align = 1)
 ```
@@ -464,16 +506,45 @@ ggplot(kings_data,
            color = pct_not_white)) +
   geom_point(show.legend = T, na.rm = T) +
   theme(legend.position = "bottom",
-        legend.key.size = unit(1,"cm"))+
+        legend.key.size = unit(1,"cm"), text = element_text(family = "Trebuchet MS"))+
   scale_y_continuous(name = "Median Income by Tract",
                      breaks = c(25000,50000,75000,100000),
                      labels = c("$25,000","$50,000","$75,000","$100,000"))+
   scale_x_continuous(name = "Median Age by Tract")+
-  scale_color_continuous(name = "Proportion of Tract Population that is Non-White")
+  scale_color_continuous(name = "Proportion of Tract Population\nthat is Non-White")
 ```
 
 
+```{r}
+kings_shape <- st_as_sf(left_join(kings_data, ny_shapefile, by = "GEOID"))
 
+left_side <- st_bbox(kings_shape)$xmin
+right_side <- st_bbox(kings_shape)$xmax
+bottom_side <- st_bbox(kings_shape)$ymin
+top_side <- st_bbox(kings_shape)$ymax+.025
+
+brook_map <- ggplot(kings_shape) +
+  geom_sf(data = ny_shapefile, fill = NA, color = "grey60") +
+  geom_sf(color = NA, aes(fill = maj_anc_type), show.legend = F) +
+  coord_sf(xlim = c(left_side, right_side),
+           ylim = c(bottom_side, top_side)) +
+  scale_fill_viridis_d(name = "Majority\n Ancestral\n Country\n of Tract",
+                       labels = c("Afghan","American","Arab","Belgian",
+                                  "Eastern European", "English","European (not specified)",
+                                  "German","Greek","Guyanese","Hungarian","Irish","Italian",
+                                  "Norwegian","Polish","Russian","Serbian",
+                                  "Subsaharan African (not specified)",
+                                  "Turkish","Ukranian","West Indian\n(non-Hispanic)")) +
+  annotation_north_arrow(style = north_arrow_fancy_orienteering(), location = "tr") +
+  annotation_scale(location = "br") +
+  theme_map() +
+  theme(plot.background = element_rect(fill = "grey"))
+
+brook_map
+
+jpeg("Portfolio/brooklyn_map.jpeg", height = 500, width = 500)
+brook_map
+dev.off()
 
 ```
 

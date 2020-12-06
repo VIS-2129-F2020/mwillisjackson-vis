@@ -24,6 +24,8 @@ library(ggthemes)
 library(rnaturalearthhires)
 library(ggrepel)
 library(gridExtra)
+library(extrafont)
+loadfonts(device = "win")
 
 ```
 
@@ -131,18 +133,24 @@ africa_transformed_abc<- africa %>%
 
 # Visualizations of GDP
 ## Chloropleth Map
-
+   
 ```{r plot data}
 ggplot(africa_transformed_brads,
        aes(fill = gdp_md_est), ) +
   geom_sf(color = "black", size = .01) +
   annotation_scale() +
-  scale_fill_viridis_c(
-    name = "GDP (USD)",
-    breaks = seq(0,500000, by = 100000),
-    labels = c("$0","$100M","$200M","$300M","$400M","$500M")) +
-    geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "white", fill = NA, label.size = NA, fontface = "bold", ) +
-  theme(panel.background = element_rect(fill = "light blue"), axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0)) +
+  scale_fill_viridis_c(name = "GDP (USD)",
+                       breaks = seq(0,500000, by = 100000),
+                       labels = c("$0","$100B","$200B","$300B","$400B","$500B")) +
+  geom_sf_label(aes(geometry, label = abbrev), 
+                size = 1.8, 
+                color = "white", 
+                fill = NA, 
+                label.size = NA, 
+                fontface = "bold", ) +
+  theme(panel.background = element_rect(fill = "light blue"), 
+        axis.title.x = element_text(size = 0), 
+        axis.title.y = element_text(size = 0)) +
   labs(title = "GDP by Country")
 
 ```
@@ -156,12 +164,18 @@ gdp_cart_cont<- africa_transformed_brads %>%
 ggplot(gdp_cart_cont,
        aes(fill = gdp_md_est)) +
   geom_sf(color = "black", size = .01) +
-  scale_fill_gradient2_tableau(
-    name = "GDP (USD)",
-    breaks = seq(0,500000, by = 100000),
-    labels = c("$0","$100M","$200M","$300M","$400M","$500M")) +
-  geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "white", fill = NA, label.size = NA, fontface = "bold") +
-  theme(panel.background = element_rect(fill = "black"), axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0)) +
+  scale_fill_gradient2_tableau(name = "GDP (USD)",
+                               breaks = seq(0,500000, by = 100000),
+                               labels = c("$0","$100B","$200B","$300B","$400B","$500B")) +
+  geom_sf_label(aes(geometry, label = abbrev), 
+                size = 1.8, 
+                color = "white", 
+                fill = NA, 
+                label.size = NA, 
+                fontface = "bold") +
+  theme(panel.background = element_rect(fill = "black"), 
+        axis.title.x = element_text(size = 0), 
+        axis.title.y = element_text(size = 0)) +
   labs(title = "GDP by Country, Showing Population \n(Continuous Cartogram)")
 
 
@@ -170,20 +184,73 @@ ggplot(gdp_cart_cont,
 
 ## Dorling Cartogram
 
-```{r dorling, message=F}
+```{r dorling, message=F, fig.height=10, fig.width=10}
 gdp_cart_dorling<- africa_transformed_brads %>%
   cartogram_dorling("pop_est")
 
-gdp_cart_dorling %>%
+africa_transformed_brads <- africa_transformed_brads %>%
+  mutate(percap = gdp_md_est / pop_est * 1000000)
+
+pop_centroids <- africa_transformed_brads %>%
+  st_centroid()
+
+percap_map <- ggplot(africa_transformed_brads) +
+  geom_sf(fill = "gray", color = "black", size = .2) +
+  geom_sf(data = pop_centroids,
+          aes(size = percap),
+          alpha = .8, color = "seagreen") +
+  scale_size_continuous(name = "GDP per Capita",
+                        breaks = c(5000,10000,15000,20000),
+                        labels = c("$5k","$10k","$15k","$20k")) +
+  labs(title = "Per Capita GDP by Country") +
+  theme(panel.background = element_rect(fill = "black", color = "white"), 
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text = element_blank(),
+        text = element_text(family = "Trebuchet MS", size = 25, color = "white"), 
+        plot.background = element_rect(fill = "#252525", color = NA),
+        legend.background = element_rect(fill = "#252525"),
+        legend.key = element_rect(fill = NA)) 
+
+percap_map
+
+
+jpeg("Portfolio/percap_map.jpeg", width = 850, height = 700, bg = "#252525")
+percap_map
+dev.off()
+
+dorling_map <- gdp_cart_dorling %>%
 ggplot(aes(fill = gdp_md_est)) +
-  geom_sf(color = NA) +
-  scale_fill_gradient2_tableau(
-    name = "GDP (USD)",
+  geom_sf(color = NA, show.legend = T) +
+  scale_fill_gradient2_tableau(name = c("GDP (USD)"),
     breaks = seq(0,500000, by = 100000),
-    labels = c("$0","$100M","$200M","$300M","$400M","$500M"))  +
-  geom_sf_label(aes(geometry, label = abbrev), size = 1.8, color = "white", fill = NA, label.size = NA, fontface = "bold") +
-  theme(panel.background = element_rect(fill = "black"), axis.title.x = element_text(size = 0), axis.title.y = element_text(size = 0)) +
-  labs(title = "GDP by Country, Showing Population \n(Dorling Cartogram)")
+    labels = c("$0","$100B","$200B","$300B","$400B","$500B"))  +
+  #geom_sf(data = pop_centroids,
+   #       aes(size = pop_est),
+    #      alpha = 0.5, color = "gray") +
+  geom_sf_label(aes(geometry, label = abbrev), 
+                size = 4.5, 
+                color = "white", 
+                fill = NA, 
+                label.size = NA, 
+                fontface = "bold") +
+  labs(title = "GDP by Country, Showing Population (Dorling Cartogram)") +
+  theme(panel.background = element_rect(fill = "black", color = "white"), 
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(), axis.text = element_blank(),
+        text = element_text(family = "Trebuchet MS", size = 25, color = "white"), 
+        plot.background = element_rect(fill = "#252525", color = NA),
+        legend.background = element_rect(fill = "#252525")) 
+
+dorling_map
+
+jpeg("Portfolio/dorling_map.jpeg", width = 850, height = 700, bg = "#252525")
+dorling_map
+dev.off()
+
+#ggsave(filename = "dorling.jpeg", width = 6, height = 6, units = "in", 
+ #      plot = dorling_map, 
+  #     device = "jpeg",
+   #    path = "C:/Users/mwill/OneDrive - Harvard University/2020 - Fall/Spatial Analysis/Git/mwillisjackson-vis/Portfolio")
 
 ```
 
